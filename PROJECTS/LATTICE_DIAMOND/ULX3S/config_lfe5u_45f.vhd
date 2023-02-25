@@ -6,6 +6,7 @@ package config is
     constant CLOCK_FREQ_MHZ : integer := 25;
     constant STACK_ADDR : std_logic_vector(31 downto 0) := X"8001_0000";
     constant RESET_PC : std_logic_vector(31 downto 0) := X"0000_0000";
+	constant BOOTLOADER_PATH : string := "../../../../PROG/loader.hex";
     
     -- PICORV
     -- SERV
