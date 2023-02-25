@@ -51,8 +51,8 @@ architecture rtl of soc is
     component picorv32
 		generic(
 			STACKADDR : std_logic_vector(31 downto 0) := STACK_ADDR;
-			PROGADDR_RESET : std_logic_vector(31 downto 0) := RESET_PC;
-			ENABLE_COUNTERS : boolean := true;
+			PROGADDR_RESET : std_logic_vector(31 downto 0) := RESET_PC
+			/*ENABLE_COUNTERS : boolean := true;
 			ENABLE_COUNTERS64 : boolean := true;
 			ENABLE_REGS_16_31 : boolean := true;
 			ENABLE_REGS_DUALPORT : boolean := true;
@@ -74,7 +74,7 @@ architecture rtl of soc is
 			REGS_INIT_ZERO : boolean := true;
 			MASKED_IRQ : std_logic_vector(31 downto 0) := (others => '0');
 			LATCHED_IRQ : std_logic_vector(31 downto 0) := (others => '0');
-			PROGADDR_IRQ : std_logic_vector(31 downto 0) := (others => '0')
+			PROGADDR_IRQ : std_logic_vector(31 downto 0) := (others => '0')*/
 		);
 		port(
 			mem_valid : out std_logic;
