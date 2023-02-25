@@ -1,0 +1,30 @@
+#ignore everything
+*
+
+#Gitignore
+!.gitignore
+
+!*/
+
+#Verilog and VHDL files
+!*.v
+!*.vhd
+
+#Constraint files
+!*.ldf
+!*.xdc
+
+#Project files
+!*.xpr
+!*.lpf
+
+*impl1/
+*.sim/
+*.runs/
+*.ip_user_files/
+*.hw/
+*.cache/
+
+
+#Bootloader
+!PROG/loader.hex
