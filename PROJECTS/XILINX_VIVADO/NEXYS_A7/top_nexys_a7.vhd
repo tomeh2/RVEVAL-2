@@ -14,11 +14,32 @@ entity top_nexys_a7 is
 end top_nexys_a7;
 
 architecture rtl of top_nexys_a7 is
-
+    component clk_wiz_0
+        port
+         (-- Clock in ports
+          -- Clock out ports
+          clk_out1          : out    std_logic;
+          -- Status and control signals
+          locked            : out    std_logic;
+          clk_in1           : in     std_logic
+         );
+    end component;
+    
+    signal clk, clk_locked : std_logic;
 begin
+    clk_wiz : clk_wiz_0
+       port map ( 
+      -- Clock out ports  
+       clk_out1 => clk,
+      -- Status and control signals                
+       locked => clk_locked,
+       -- Clock in ports
+       clk_in1 => CLK100MHZ
+       );
+
     soc_inst : entity work.soc(rtl)
-               port map(clk => CLK100MHZ,
-                        reset => not CPU_RESETN,
+               port map(clk => clk,
+                        reset => not CPU_RESETN and clk_locked,
                         
                         gpio_i => (others => '0'),
                         gpio_o(7 downto 0) => LED(7 downto 0),

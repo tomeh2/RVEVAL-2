@@ -24,6 +24,10 @@
 *.ip_user_files/
 *.hw/
 *.cache/
+*.gen/
+
+#IP Config files
+!*.xci
 
 
 #Bootloader
