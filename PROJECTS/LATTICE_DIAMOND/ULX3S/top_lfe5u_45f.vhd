@@ -14,11 +14,18 @@ entity top_lfe5u_45f is
 end top_lfe5u_45f;
 
 architecture rtl of top_lfe5u_45f is
-
+	signal clk, clk_locked : std_logic;
 begin
+	clk_gen : entity work.pll_1(Structure)
+			  port map(CLKI => clk_25mhz,
+						CLKOP => open,			-- 50 MHz
+						CLKOS => open,			-- 60 MHz
+						CLKOS2 => clk,			-- 75 MHz
+						LOCK => clk_locked);
+
     soc_inst : entity work.soc(rtl)
-               port map(clk => clk_25mhz,
-                        reset => not btn(0),
+               port map(clk => clk,
+                        reset => not btn(0) and clk_locked,
                         
                         gpio_i => (others => '0'),
                         gpio_o(7 downto 0) => led(7 downto 0),

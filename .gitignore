@@ -29,6 +29,9 @@
 #IP Config files
 !*.xci
 
+*clk_gen/
+!*clk_gen/pll_1/pll_1.vhd
+
 
 #Bootloader
 !PROG/loader.hex
