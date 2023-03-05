@@ -146,23 +146,23 @@ begin
 	if rising_edge(clk) then
 	    -- bus interface logic
 	    if ce = '1' then
-		if not C_fixed_baudrate and bus_write = '1' and
-		  byte_sel(2) = '1' then
-		    if C_big_endian then
-			R_baudrate <=
-			  bus_in(23 downto 16) & bus_in(31 downto 24);
-		    else
-			R_baudrate <= bus_in(31 downto 16);
-		    end if;
-		end if;
-		if bus_write = '1' and byte_sel(0) = '1' then
-		    if tx_phase = x"0" then
-			tx_phase <= x"1";
-			tx_ser <= bus_in(7 downto 0) & '0';
-		    end if;
-		elsif bus_write = '0' and byte_sel(0) = '1' and i_bus_ack = '1' then
-		    rx_full <= '0';
-		end if;
+            if not C_fixed_baudrate and bus_write = '1' and
+              byte_sel(2) = '1' then
+                if C_big_endian then
+                R_baudrate <=
+                  bus_in(23 downto 16) & bus_in(31 downto 24);
+                else
+                R_baudrate <= bus_in(31 downto 16);
+                end if;
+            end if;
+            if bus_write = '1' and byte_sel(0) = '1' then
+                if tx_phase = x"0" then
+                tx_phase <= x"1";
+                tx_ser <= bus_in(7 downto 0) & '0';
+                end if;
+            elsif bus_write = '0' and byte_sel(0) = '1' and i_bus_ack = '1' then
+                rx_full <= '0';
+            end if;
 	    end if;
 
 	    -- baud generator

@@ -71,7 +71,9 @@ begin
     end generate;
 
     master_select_proc : process(all)
+        variable a : std_logic;
     begin
+        a := '0';
         wb_master_rdata <= i_bus_rdata;
         wb_slave_wren <= wb_master_wren;
     
@@ -82,12 +84,13 @@ begin
         for i in NUM_MASTERS - 1 downto 0 loop
             wb_master_ack(i) <= '0';
         
-            if (wb_master_cyc(i) = '1') then
+            if (wb_master_cyc(i) = '1' and a = '0') then
                 i_bus_wdata <= wb_master_wdata(32 * (i + 1) - 1 downto 32 * i);
                 i_bus_addr <= wb_master_addr(32 * (i + 1) - 1 downto 32 * i);
                 i_bus_wstrb <= wb_master_wstrb(4 * (i + 1) - 1 downto 4 * i);
                 i_bus_cyc <= wb_master_cyc(i);
                 wb_master_ack(i) <= i_bus_ack;
+                a := '1';
             end if;
         end loop;
     end process;

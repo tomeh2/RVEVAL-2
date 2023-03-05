@@ -424,6 +424,25 @@ begin
             );
         wb_icpu_wstrb <= "1111";
     end generate;
+    
+    myrisc_gen : if (CPU_NAME = "MYRISC") generate
+        myrisc_inst: entity work.core(structural)
+                     port map(bus_addr_read => wb_icpu_addr,
+                              bus_addr_write => wb_dcpu_addr,
+                              bus_data_read => wb_dcpu_rdata,
+                              bus_data_write => wb_dcpu_wdata,
+                              bus_stbr => wb_icpu_cyc,
+                              bus_stbw => wb_dcpu_wstrb,
+                              bus_ackr => wb_icpu_ack,
+                              bus_ackw => wb_dcpu_ack,
+        
+                              clk => clk,
+                              
+                              reset => reset);
+        wb_icpu_wstrb <= "0000";
+        wb_dcpu_cyc <= '1' when wb_dcpu_wstrb /= "0000" else '0';
+        wb_dcpu_we <= '1' when wb_dcpu_wstrb /= "0000" else '0';
+    end generate;
 
 
     neumann_gen : if (CPU_NAME = "NEORV" or CPU_NAME = "PICORV") generate
@@ -462,7 +481,7 @@ begin
                                      clk => clk);
     end generate;
     
-    harvard_gen : if (CPU_NAME = "SERV") generate
+    harvard_gen : if (CPU_NAME = "SERV" or CPU_NAME = "MYRISC") generate
         interconnect_inst : entity work.wb_interconnect_bus(rtl)
                             generic map(DECODER_ADDR_WIDTH => 24,
                                         NUM_SLAVES => 4,
