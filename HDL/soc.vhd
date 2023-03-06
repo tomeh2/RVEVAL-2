@@ -417,12 +417,12 @@ begin
                 o_dbus_adr => wb_dcpu_addr,
                 o_dbus_dat => wb_dcpu_wdata,
                 o_dbus_sel => wb_dcpu_wstrb,
-                o_dbus_we => open,
+                o_dbus_we => wb_dcpu_we,
                 o_dbus_cyc => wb_dcpu_cyc,
                 i_dbus_rdt => wb_dcpu_rdata,
                 i_dbus_ack => wb_dcpu_ack
             );
-        wb_icpu_wstrb <= "1111";
+        wb_icpu_wstrb <= "0000";
     end generate;
     
     myrisc_gen : if (CPU_NAME = "MYRISC") generate
@@ -562,7 +562,13 @@ begin
             bus_ack => wb_uart_ack,
             break => open
         );
-        uart_byte_sel <= wb_wstrb when wb_wren = '1' else "0001";
+        
+        
+        pico_sio_intf_gen :if (CPU_NAME = "PICORV") generate
+            uart_byte_sel <= wb_wstrb when wb_wren = '1' else "0001";
+        else generate
+            uart_byte_sel <= wb_wstrb;
+        end generate;
     
     gpio_instance : entity work.gpio
                     port map(gpio_i => gpio_i,
