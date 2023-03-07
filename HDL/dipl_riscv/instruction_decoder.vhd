@@ -107,8 +107,7 @@ begin
         is_jalr <= '0';
         
         branch_taken_pc <= std_logic_vector(unsigned(pc) + unsigned(uop.immediate));
-        
-        -- IMMEDIATE GENERATION
+
         uop_alu_op_sel(2 downto 0) <= instruction(14 downto 12);
     
         case (instruction(6 downto 2)) is
@@ -136,6 +135,11 @@ begin
                 uop.operation_select(3 downto 0) <= (others => '0');
                 
                 uop.arch_src_reg_1_addr <= "00000";
+            when OPCODE_AUIPC => 
+                uop.operation_type <= OPTYPE_INTEGER;
+                uop.operation_select(5) <= '1';
+                uop.operation_select(7) <= '1';
+                uop.operation_select(3 downto 0) <= (others => '0');
                 
             when OPCODE_COND_BR => 
                 case instruction(14 downto 13) is
@@ -187,6 +191,8 @@ begin
             when others => 
                 uop.operation_type <= (others => '0');
                 uop.operation_select <= (others => '0');
+                
+                report "Illegal instruction! PC = " & to_hstring(pc) & " | Instruction = " & to_hstring(instruction) severity failure;
         end case;   
     end process;
     

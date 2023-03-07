@@ -40,7 +40,7 @@ package pkg_cpu is
     -- ========================= DEBUG =========================
     constant ENABLE_EXT_BUS_ILA : boolean := false;
     constant ENABLE_UART_ILA : boolean := false;
-    constant ENABLE_ARCH_REGFILE_MONITORING : boolean := false;
+    constant ENABLE_ARCH_REGFILE_MONITORING : boolean := true;
     -- =========================================================
     
     -- ========================= CAN BE MODIFIED =========================
@@ -65,7 +65,8 @@ package pkg_cpu is
     constant DCACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant DCACHE_ENTRIES_PER_CACHELINE : integer := 4;
     constant DCACHE_NUM_SETS : integer := 16;                     -- MUST BE POWER OF 2!
-    constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"FFFF0000";
+    --constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"FFFF_0000";
+    constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"8000_0000";
     
     constant CSR_PERF_COUNTERS_EN : boolean := true;
     

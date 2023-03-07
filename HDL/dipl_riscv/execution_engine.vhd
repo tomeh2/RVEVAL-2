@@ -222,6 +222,7 @@ architecture Structural of execution_engine is
     signal sched_op_2_ready : std_logic;
     -- =======================================
     
+    signal p1_p2_speculated_branches_mask : std_logic_vector(BRANCHING_DEPTH - 1 downto 0);
     signal csr_read_val : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     signal debug_rat : debug_rat_type;
 begin
@@ -601,8 +602,7 @@ begin
                                cdb_out => cdb_1,
                                cdb_request => cdb_request_1,
                                cdb_granted => cdb_granted_1,
-                               
-                               branch_mask => next_uop.branch_mask,
+
                                next_uop => next_uop_full,
                                next_uop_valid => not stall_ee,
                                instr_tag => rob_alloc_instr_tag,

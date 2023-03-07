@@ -33,6 +33,8 @@ use WORK.PKG_CPU.ALL;
 -- Currently PC is stored for EVERY instruction which might not be necessary and takes a LOT of space. A better solution 
 -- might be needed in the future
 
+-- Where exactly does the ROB check whether the instruction it is about to commit is still speculative...?
+
 entity reorder_buffer is
     generic(
         ARCH_REGFILE_ENTRIES : integer range 1 to 1024;

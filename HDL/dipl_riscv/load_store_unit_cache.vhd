@@ -44,8 +44,7 @@ entity load_store_unit_cache is
         cdb_out : out cdb_type;
         cdb_request : out std_logic;
         cdb_granted : in std_logic;
-        
-        branch_mask : in std_logic_vector(BRANCHING_DEPTH - 1 downto 0);
+
         next_uop : in uop_full_type; 
         next_uop_valid : in std_logic;
         -- Instruction tags
@@ -369,7 +368,8 @@ begin
             if (reset = '1') then
                 load_state_reg <= LOAD_IDLE;
             else
-                if (cdb_in.branch_mispredicted = '1' and cdb_in.valid = '1') then
+                if (cdb_in.branch_mispredicted = '1' and cdb_in.valid = '1' and 
+                   (((load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_BRMASK_START downto LQ_BRMASK_END) and cdb_in.branch_mask)) /= BRANCH_MASK_ZERO)) then
                     load_state_reg <= LOAD_IDLE;
                 else
                     load_state_reg <= load_state_next;
@@ -378,7 +378,7 @@ begin
         end if;
     end process;
 
-    spec_br_mask <= next_uop.speculated_branches_mask when cdb_in.valid = '0' else next_uop.speculated_branches_mask and cdb_in.branch_mask;
+    spec_br_mask <= next_uop.speculated_branches_mask when cdb_in.valid = '0' else next_uop.speculated_branches_mask and not cdb_in.branch_mask;
     -- QUEUE CONTROL
     queue_control_proc : process(clk)
     begin
@@ -387,12 +387,12 @@ begin
                 store_queue <= (others => SQ_INIT);
                 load_queue <= (others => (others => '0'));
             else
-                if (branch_mask /= BRANCH_MASK_ZERO and next_uop_valid = '1') then
-                    lq_tail_mispredict_recovery_memory(branch_mask_to_int(branch_mask)) <= lq_tail_counter_reg;
+                if (next_uop.branch_mask /= BRANCH_MASK_ZERO and next_uop_valid = '1') then
+                    lq_tail_mispredict_recovery_memory(branch_mask_to_int(next_uop.branch_mask)) <= lq_tail_counter_reg;
                 end if;
                 
-                if (branch_mask /= BRANCH_MASK_ZERO and next_uop_valid = '1') then
-                    sq_tail_mispredict_recovery_memory(branch_mask_to_int(branch_mask)) <= sq_tail_counter_reg;
+                if (next_uop.branch_mask /= BRANCH_MASK_ZERO and next_uop_valid = '1') then
+                    sq_tail_mispredict_recovery_memory(branch_mask_to_int(next_uop.branch_mask)) <= sq_tail_counter_reg;
                 end if;
             
                 if (sq_enqueue_en = '1' and i_sq_full = '0') then

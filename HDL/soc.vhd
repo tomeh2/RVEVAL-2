@@ -549,6 +549,7 @@ begin
     sio_instance: entity work.sio
         generic map (
             C_clk_freq => CLOCK_FREQ_MHZ,
+            C_init_baudrate => UART_BAUD_RATE,
             C_break_detect => false)
         port map (
             clk => clk,
@@ -564,7 +565,7 @@ begin
         );
         
         
-        pico_sio_intf_gen :if (CPU_NAME = "PICORV") generate
+        pico_sio_intf_gen :if (CPU_NAME = "PICORV" or CPU_NAME = "MYRISC") generate
             uart_byte_sel <= wb_wstrb when wb_wren = '1' else "0001";
         else generate
             uart_byte_sel <= wb_wstrb;
