@@ -199,7 +199,7 @@ begin
                     rob_valid_bits(to_integer(unsigned(rob_tail_counter_reg))) <= uop_commit_ready;
                                                         
                     if (uop.branch_mask /= BRANCH_MASK_ZERO and next_uop_valid = '1') then                                     
-                        rob_tail_mispredict_recovery_memory(branch_mask_to_int(uop.branch_mask)) <= rob_tail_counter_reg;
+                        rob_tail_mispredict_recovery_memory(branch_mask_to_int(uop.branch_mask)) <= rob_tail_counter_next;
                     end if;
                 end if;
                 

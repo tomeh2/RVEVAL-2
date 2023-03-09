@@ -478,6 +478,7 @@ begin
                                      wb_slave_ack(2) => wb_rom_ack,
                                      wb_slave_ack(3) => wb_gpio_ack,
                                      
+                                     reset => reset,
                                      clk => clk);
     end generate;
     
@@ -518,6 +519,7 @@ begin
                                      wb_slave_ack(2) => wb_rom_ack,
                                      wb_slave_ack(3) => wb_gpio_ack,
                                      
+                                     reset => reset,
                                      clk => clk);
     end generate;
                                  

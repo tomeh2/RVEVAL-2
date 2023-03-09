@@ -472,7 +472,7 @@ begin
                             reset => reset);
     end generate;
     
-    rf_write_en <= '1' when cdb.valid = '1' and cdb.branch_mask = BRANCH_MASK_ZERO else '0';
+    rf_write_en <= '1' when cdb.valid = '1' and (cdb.branch_mask = BRANCH_MASK_ZERO or cdb.is_jalr = '1') else '0';
     register_file : entity work.register_file(rtl)
                     generic map(REG_DATA_WIDTH_BITS => CPU_DATA_WIDTH_BITS,
                                 REGFILE_ENTRIES => PHYS_REGFILE_ENTRIES)

@@ -169,10 +169,11 @@ begin
 
             when OPCODE_JALR =>
                 uop.operation_type <= OPTYPE_BRANCH;        -- This instruction gets treated like a conditional branch by the Exec. Engine, but as a branch that is always taken
-                uop.operation_select(2 downto 0) <= "001";  -- No conditional branch has this alu op sel value so it can be used to identify this as a JALR instruction
+                uop.operation_select(2 downto 0) <= "000";  -- No conditional branch has this alu op sel value so it can be used to identify this as a JALR instruction
                 
                 uop_is_jalr <= '1';
                 is_speculative_branch <= '1';
+                uop_uses_pc <= '1';
                 --uop_uses_immediate <= '1';
                 uop_is_speculative_branch <= '1';
                 is_uncond_branch <= '1';
@@ -188,6 +189,8 @@ begin
                 
                     uop.arch_src_reg_1_addr <= (others => '0');
                 end if;
+            when "XXXXX" | "UUUUU" => 
+            
             when others => 
                 uop.operation_type <= (others => '0');
                 uop.operation_select <= (others => '0');

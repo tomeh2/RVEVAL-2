@@ -14,6 +14,7 @@ entity wb_interconnect_bus is
     );
     port(
         clk : in std_logic;
+        reset : in std_logic;
     
         wb_master_rdata : out std_logic_vector(31 downto 0);
         wb_master_wdata : in std_logic_vector(NUM_MASTERS * 32 - 1 downto 0);
@@ -54,6 +55,15 @@ architecture rtl of wb_interconnect_bus is
             probe6 : IN STD_LOGIC_VECTOR(0 DOWNTO 0)
         );
     END COMPONENT;
+    
+    type arbiter_sm_type is (IDLE, LOCKED);
+    signal arbiter_state_reg : arbiter_sm_type;
+    signal arbiter_state_next : arbiter_sm_type;
+    
+    signal selected_master_next : integer;
+    signal selected_master_reg : integer;
+    signal select_master_en : std_logic;
+    signal bus_cycle_valid : std_logic;
 begin
     bus_ila_gen : if (ENABLE_BUS_ILA_XILINX = true) generate
         your_instance_name : ila_0
@@ -70,10 +80,79 @@ begin
         );
     end generate;
 
+    arbiter_gen : if (NUM_MASTERS > 1) generate
+        process(clk)
+        begin
+            if (rising_edge(clk)) then
+                if (reset = '1') then
+                    arbiter_state_reg <= IDLE;
+                else
+                    arbiter_state_reg <= arbiter_state_next;
+                end if;
+            end if;
+        end process;
+        
+        process(all)    
+            variable is_any_master_active : std_logic;
+        begin
+            is_any_master_active := '0';
+            
+            for i in 0 to NUM_MASTERS - 1 loop
+                if (wb_master_cyc(i) = '1') then
+                    is_any_master_active := '1';
+                    selected_master_next <= i;
+                end if;
+            end loop;
+        
+            case arbiter_state_reg is
+                when IDLE => 
+                    arbiter_state_next <= IDLE;
+                    if (is_any_master_active = '1') then
+                        arbiter_state_next <= LOCKED;
+                    end if;
+                when LOCKED => 
+                    arbiter_state_next <= LOCKED;
+                    if (i_bus_ack = '1' or i_bus_cyc = '0') then
+                        arbiter_state_next <= IDLE;
+                    end if;
+                when others => 
+                    arbiter_state_next <= IDLE;
+            end case;
+            
+            select_master_en <= '0';
+            bus_cycle_valid <= '0';
+            case arbiter_state_reg is
+                when IDLE => 
+                    if (is_any_master_active = '1') then
+                        select_master_en <= '1';
+                    end if;
+                when LOCKED => 
+                    bus_cycle_valid <= '1';
+                when others => 
+                    
+            end case;
+        end process;
+        
+        process(clk)    
+        begin
+            if (rising_edge(clk)) then
+                if (reset = '1') then
+                    selected_master_reg <= 0;
+                else
+                    if (select_master_en = '1') then
+                        selected_master_reg <= selected_master_next;
+                    end if;
+                end if;
+            end if;
+        end process;
+    else generate
+        selected_master_reg <= 0;
+        bus_cycle_valid <= '1';
+    end generate;
+    
+
     master_select_proc : process(all)
-        variable a : std_logic;
     begin
-        a := '0';
         wb_master_rdata <= i_bus_rdata;
         wb_slave_wren <= wb_master_wren;
     
@@ -84,13 +163,12 @@ begin
         for i in NUM_MASTERS - 1 downto 0 loop
             wb_master_ack(i) <= '0';
         
-            if (wb_master_cyc(i) = '1' and a = '0') then
-                i_bus_wdata <= wb_master_wdata(32 * (i + 1) - 1 downto 32 * i);
-                i_bus_addr <= wb_master_addr(32 * (i + 1) - 1 downto 32 * i);
-                i_bus_wstrb <= wb_master_wstrb(4 * (i + 1) - 1 downto 4 * i);
-                i_bus_cyc <= wb_master_cyc(i);
-                wb_master_ack(i) <= i_bus_ack;
-                a := '1';
+            if (bus_cycle_valid = '1') then
+                i_bus_wdata <= wb_master_wdata(32 * (selected_master_reg + 1) - 1 downto 32 * selected_master_reg);
+                i_bus_addr <= wb_master_addr(32 * (selected_master_reg + 1) - 1 downto 32 * selected_master_reg);
+                i_bus_wstrb <= wb_master_wstrb(4 * (selected_master_reg + 1) - 1 downto 4 * selected_master_reg);
+                i_bus_cyc <= wb_master_cyc(selected_master_reg);
+                wb_master_ack(selected_master_reg) <= i_bus_ack;
             end if;
         end loop;
     end process;
