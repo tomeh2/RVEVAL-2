@@ -242,7 +242,7 @@ package pkg_cpu is
     constant ALU_OP_XOR : std_logic_vector(3 downto 0) := "0100";
     constant ALU_OP_EQ : std_logic_vector(3 downto 0) := "1100";
     constant ALU_OP_LESS : std_logic_vector(3 downto 0) := "0010";
-    constant ALU_OP_LESSU : std_logic_vector(3 downto 0) := "1110";
+    constant ALU_OP_LESSU : std_logic_vector(3 downto 0) := "0011";
     constant ALU_OP_OR : std_logic_vector(3 downto 0) := "0110";
     constant ALU_OP_AND : std_logic_vector(3 downto 0) := "0111";
     constant ALU_OP_SLL : std_logic_vector(3 downto 0) := "0001";

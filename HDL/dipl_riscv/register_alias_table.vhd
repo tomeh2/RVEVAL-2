@@ -107,7 +107,8 @@ begin
                 if (cdb.branch_mispredicted = '1' and cdb.valid = '1') then
                     rat <= rat_mispredict_recovery_memory(branch_mask_to_int(cdb.branch_mask));
                     
-                    if (cdb.is_jalr = '1') then
+                    -- TEMPORARY
+                    if (cdb.is_jalr = '1' and cdb.phys_dest_reg /= PHYS_REG_TAG_ZERO) then
                         rat(1) <= cdb.phys_dest_reg;
                     end if;
                 elsif (next_instr_branch_mask /= BRANCH_MASK_ZERO and next_uop_valid = '1') then

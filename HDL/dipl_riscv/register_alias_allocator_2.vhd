@@ -83,7 +83,7 @@ begin
                 if (cdb.branch_mispredicted = '1' and cdb.valid = '1') then
                     register_status_vector <= rsv_mispredict_recovery_memory(branch_mask_to_int(cdb.branch_mask));
                     
-                    if (cdb.is_jalr = '1') then
+                    if (cdb.is_jalr = '1' and cdb.phys_dest_reg /= PHYS_REG_TAG_ZERO) then
                         register_status_vector(to_integer(unsigned(cdb.phys_dest_reg))) <= '0';
                     end if;
                 else
