@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 package config is
-    constant CLOCK_FREQ_MHZ : integer := 100;
+    constant CLOCK_FREQ_MHZ : integer := 110;
     constant UART_BAUD_RATE : integer := 921600;
     constant STACK_ADDR : std_logic_vector(31 downto 0) := X"8001_0000";
     constant RESET_PC : std_logic_vector(31 downto 0) := X"0000_0000";
@@ -12,7 +12,7 @@ package config is
     -- PICORV
     -- SERV
         constant CPU_NAME : string := "MYRISC";
-    constant ENABLE_BUS_ILA_XILINX : boolean := true;
+    constant ENABLE_BUS_ILA_XILINX : boolean := false;
     
     type wb_data_type is array (natural range <>) of std_logic_vector(31 downto 0);
     subtype wb_addr_type is std_logic_vector(31 downto 0);

@@ -87,21 +87,27 @@ architecture Structural of execution_engine is
     
     signal pipeline_reg_2_0 : execution_engine_pipeline_register_2_0_type;
     signal pipeline_reg_2_0_next : execution_engine_pipeline_register_2_0_type;
+    signal pipeline_reg_2_0_we : std_logic;
     
     signal pipeline_reg_2_1 : execution_engine_pipeline_register_2_1_type;
     signal pipeline_reg_2_1_next : execution_engine_pipeline_register_2_1_type;
+    signal pipeline_reg_2_1_we : std_logic;
     
     signal pipeline_reg_3_0 : execution_engine_pipeline_register_3_0_type;
     signal pipeline_reg_3_0_next : execution_engine_pipeline_register_3_0_type;
+    signal pipeline_reg_3_0_we : std_logic;
     
     signal pipeline_reg_3_1 : execution_engine_pipeline_register_3_1_type;
     signal pipeline_reg_3_1_next : execution_engine_pipeline_register_3_1_type;
+    signal pipeline_reg_3_1_we : std_logic;
     
     signal pipeline_reg_4_0 : execution_engine_pipeline_register_4_0_type;
     signal pipeline_reg_4_0_next : execution_engine_pipeline_register_4_0_type;
+    signal pipeline_reg_4_0_we : std_logic;
     
     signal pipeline_reg_4_1 : execution_engine_pipeline_register_4_1_type;
     signal pipeline_reg_4_1_next : execution_engine_pipeline_register_4_1_type;
+    signal pipeline_reg_4_1_we : std_logic;
 
     -- ========================================
     
@@ -207,7 +213,7 @@ architecture Structural of execution_engine is
     -- =====================================
     
     -- =========== CONTROL SIGNALS ===========
-    signal stall_ee : std_logic;
+    signal stall_issue : std_logic;
     signal eu_0_ready : std_logic;
     signal eu_1_ready : std_logic;
     
@@ -229,6 +235,14 @@ begin
     -- ========================================================================================
     --                                PIPELINE REGISTER LOGIC
     -- ========================================================================================
+    
+    pipeline_reg_2_0_we <= pipeline_reg_3_0_we or not pipeline_reg_2_0.valid;
+    pipeline_reg_3_0_we <= pipeline_reg_4_0_we or not pipeline_reg_3_0.valid;
+    pipeline_reg_4_0_we <= eu_0_ready or not pipeline_reg_4_0.valid;
+    
+    pipeline_reg_2_1_we <= pipeline_reg_3_1_we or not pipeline_reg_2_1.valid;
+    pipeline_reg_3_1_we <= pipeline_reg_4_1_we or not pipeline_reg_3_1.valid;
+    pipeline_reg_4_1_we <= eu_1_ready or not pipeline_reg_4_1.valid;
     pipeline_reg_proc : process(clk)
     begin
         if (rising_edge(clk)) then
@@ -240,15 +254,27 @@ begin
                 pipeline_reg_4_0.valid <= '0';
                 pipeline_reg_4_1.valid <= '0';
             else
-                if (eu_0_ready = '1') then
+                if (pipeline_reg_2_0_we = '1') then
                     pipeline_reg_2_0 <= pipeline_reg_2_0_next;
+                end if;
+                
+                if (pipeline_reg_3_0_we = '1') then
                     pipeline_reg_3_0 <= pipeline_reg_3_0_next;
+                end if;
+                
+                if (pipeline_reg_4_0_we = '1') then
                     pipeline_reg_4_0 <= pipeline_reg_4_0_next;
                 end if;
-                    
-                if (eu_1_ready = '1') then
+                
+                if (pipeline_reg_2_1_we = '1') then
                     pipeline_reg_2_1 <= pipeline_reg_2_1_next;
+                end if;
+                
+                if (pipeline_reg_3_1_we = '1') then
                     pipeline_reg_3_1 <= pipeline_reg_3_1_next;
+                end if;
+                
+                if (pipeline_reg_4_1_we = '1') then
                     pipeline_reg_4_1 <= pipeline_reg_4_1_next;
                 end if;
             end if;
@@ -367,14 +393,14 @@ begin
     next_uop_store <= '1' when (next_uop_full.operation_type = OPTYPE_STORE) else '0';
     next_uop_load <= '1' when (next_uop_full.operation_type = OPTYPE_LOAD) else '0';
     
-    stall_ee <=     raa_empty or
+    stall_issue <=     raa_empty or
                     rob_full or
                     not fifo_ready or
                     sched_full or
                     (sq_full and next_uop_store) or 
                     (lq_full and next_uop_load);
 
-    fifo_read_en <= not stall_ee;
+    fifo_read_en <= not stall_issue;
       
     branch_prediction_table : entity work.branch_prediction_table(rtl)
                               port map(branch_mask_w => fe_branch_mask,
@@ -384,14 +410,14 @@ begin
                                        branch_mask_r => pipeline_reg_2_0.uop.branch_mask,
                                        branch_predicted_pc_r => bpt_branch_predicted_target_pc,
                                        branch_prediction_r => bpt_branch_predicted_outcome,
-                                       rd_en => eu_0_ready,
+                                       rd_en => pipeline_reg_3_0_we,
                                        
                                        clk => clk);
     
     -- ==================================================================================================
     --                                        REGISTER RENAMING
     -- ==================================================================================================
-    raa_get_en <= '1' when stall_ee = '0' and next_uop_full.arch_dest_reg_addr /= "00000" else '0'; 
+    raa_get_en <= '1' when stall_issue = '0' and next_uop_full.arch_dest_reg_addr /= "00000" else '0'; 
     raa_put_en <= '1' when rob_commit_ready = '1' and freed_reg_addr /= PHYS_REG_TAG_ZERO else '0';
       
     register_alias_allocator : entity work.register_alias_allocator_2(rtl)
@@ -399,7 +425,7 @@ begin
                                            ARCH_REGFILE_ENTRIES => ARCH_REGFILE_ENTRIES)
                                port map(cdb => cdb,
                                         curr_instr_branch_mask => next_uop.branch_mask,
-                                        next_uop_valid => not stall_ee,
+                                        next_uop_valid => not stall_issue,
                                
                                         free_reg_alias => freed_reg_addr,
                                         alloc_reg_alias => rf_phys_dest_reg_addr,
@@ -429,10 +455,10 @@ begin
                                              
                                              arch_reg_addr_write_1 => next_uop_full.arch_dest_reg_addr,
                                              phys_reg_addr_write_1 => rf_phys_dest_reg_addr,
-                                             write_en => not stall_ee,
+                                             write_en => not stall_issue,
                                              
                                              next_instr_branch_mask => next_uop.branch_mask,
-                                             next_uop_valid => not stall_ee,
+                                             next_uop_valid => not stall_issue,
                                              
                                              clk => clk,
                                              reset => reset);  
@@ -454,7 +480,7 @@ begin
                                                write_en => rob_commit_ready,
                                                  
                                                next_instr_branch_mask => (others => '0'),
-                                               next_uop_valid => not stall_ee,
+                                               next_uop_valid => not stall_issue,
                                                  
                                                clk => clk,
                                                reset => reset);  
@@ -466,6 +492,8 @@ begin
                    port map(read_addr => pipeline_reg_2_0.uop.csr,
                             read_data => csr_read_val,
                             
+                            branch_commited => is_cond_branch_commit,
+                            branches_mispredicted_cdb => i_branch_mispredict_detected,
                             instr_ret => perf_commit_ready,
                             
                             clk => clk,
@@ -502,8 +530,8 @@ begin
                              wr_data => cdb.data,
                              
                              -- CONTROL
-                             rd_1_en => eu_0_ready,
-                             rd_2_en => eu_1_ready,
+                             rd_1_en => pipeline_reg_3_0_we,
+                             rd_2_en => pipeline_reg_3_1_we,
                              en => rf_write_en,
                              reset => reset,
                              clk => clk);
@@ -522,14 +550,14 @@ begin
                               next_instr_tag => rob_alloc_instr_tag,
                               
                               uop => next_uop_full,
-                              next_uop_valid => not stall_ee,
+                              next_uop_valid => not stall_issue,
                               uop_commit_ready => next_uop_init_commit_ready,
                               
-                              write_1_en => not stall_ee,
+                              write_1_en => not stall_issue,
                               commit_1_en => not (cdb.branch_mispredicted and cdb.valid),       -- Disable commit at the same time as a mispredict. Causes issues with the register renaming subsystem.
 
                               rob_entry_addr => pipeline_reg_2_0.uop.instr_tag,
-                              pc_rd_en => eu_0_ready and pipeline_reg_2_0.valid,
+                              pc_rd_en => pipeline_reg_3_0_we,
                               pc_1_out => rob_pc_out,
 
                               head_valid => rob_commit_ready,
@@ -545,7 +573,7 @@ begin
                           port map(cdb => cdb,
 
                                    uop_in_0 => next_uop_exec,
-                                   uop_in_0_valid => not stall_ee and not i_branch_mispredict_detected,
+                                   uop_in_0_valid => not stall_issue and not i_branch_mispredict_detected,
                                    operand_1_valid => sched_op_1_ready,
                                    operand_2_valid => sched_op_2_ready,
                                    
@@ -554,8 +582,8 @@ begin
                                    uop_out_1 => sched_uop_out_1,
                                    uop_out_1_valid => sched_uop_out_1_valid,
                                   
-                                   dispatch_en(0) => eu_0_ready,
-                                   dispatch_en(1) => eu_1_ready,
+                                   dispatch_en(0) => pipeline_reg_2_0_we,
+                                   dispatch_en(1) => pipeline_reg_2_1_we,
                                    full => sched_full,
                                    
                                    clk => clk,
@@ -604,7 +632,7 @@ begin
                                cdb_granted => cdb_granted_1,
 
                                next_uop => next_uop_full,
-                               next_uop_valid => not stall_ee,
+                               next_uop_valid => not stall_issue,
                                instr_tag => rob_alloc_instr_tag,
                       
                                generated_address => lsu_gen_addr,
@@ -658,10 +686,10 @@ begin
     is_cond_branch_commit <= '1' when rob_head_operation_type = OPTYPE_BRANCH and rob_commit_ready = '1' else '0';
 
     sq_data_tag <= rf_phys_src_reg_2_addr;
-    sq_enqueue_en <= '1' when next_uop_full.operation_type = OPTYPE_STORE and stall_ee = '0' else '0';
+    sq_enqueue_en <= '1' when next_uop_full.operation_type = OPTYPE_STORE and stall_issue = '0' else '0';
 
     lq_dest_tag <= rf_phys_dest_reg_addr;
-    lq_enqueue_en <= '1' when next_uop_full.operation_type = OPTYPE_LOAD and stall_ee = '0' else '0';
+    lq_enqueue_en <= '1' when next_uop_full.operation_type = OPTYPE_LOAD and stall_issue = '0' else '0';
 
     cdb_out <= cdb;
 

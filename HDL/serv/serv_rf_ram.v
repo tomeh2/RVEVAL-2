@@ -1,3 +1,5 @@
+`define SERV_CLEAR_RAM
+
 module serv_rf_ram
   #(parameter width=0,
     parameter csr_regs=4,
@@ -11,6 +13,7 @@ module serv_rf_ram
 
    reg [width-1:0] 		   memory [0:depth-1];
    reg [width-1:0] 		   rdata ;
+   reg [31:0]              timer;
 
    always @(posedge i_clk) begin
       if (i_wen)

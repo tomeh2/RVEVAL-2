@@ -32,6 +32,8 @@ entity zicsr_registers is
         read_addr : in std_logic_vector(11 downto 0);
         read_data : out std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     
+        branch_commited : in std_logic;
+        branches_mispredicted_cdb : in std_logic;
         instr_ret : in std_logic;
         
         clk : in std_logic;
@@ -40,7 +42,7 @@ entity zicsr_registers is
 end zicsr_registers;
 
 architecture rtl of zicsr_registers is
-    type csr_regs_type is array (1 downto 0) of std_logic_vector(63 downto 0);      -- 0: RDTIME AND RDCYCLE | 1: INSTRET
+    type csr_regs_type is array (2 downto 0) of std_logic_vector(63 downto 0);      -- 0: RDTIME AND RDCYCLE | 1: INSTRET
     signal csr_regs : csr_regs_type;
 begin
     process(clk)
@@ -54,6 +56,16 @@ begin
                 if (instr_ret = '1') then
                     csr_regs(1) <= std_logic_vector(unsigned(csr_regs(1)) + 1);
                 end if;
+                
+                if (CSR_PERF_CNTR_BRANCHES = true) then
+                    if (branch_commited = '1') then
+                        csr_regs(2)(31 downto 0) <= std_logic_vector(unsigned(csr_regs(2)(31 downto 0)) + 1);
+                    end if;
+                    
+                    if (branches_mispredicted_cdb = '1') then
+                        csr_regs(2)(63 downto 32) <= std_logic_vector(unsigned(csr_regs(2)(63 downto 32)) + 1);
+                    end if;
+                end if;
             end if;         
         end if;
     end process;
@@ -65,6 +77,9 @@ begin
                 when X"C00" => read_data <= csr_regs(0)(31 downto 0);            -- RDCYCLE
                 when X"C01" => read_data <= csr_regs(0)(31 downto 0);            -- RDTIME
                 when X"C02" => read_data <= csr_regs(1)(31 downto 0);            -- INSTRET
+               
+                when X"C03" => if (CSR_PERF_CNTR_BRANCHES = true) then read_data <= csr_regs(2)(31 downto 0); else read_data <= (others => '0'); end if;            -- BRANCHES EXECUTED
+                when X"C04" => if (CSR_PERF_CNTR_BRANCHES = true) then read_data <= csr_regs(2)(63 downto 32); else read_data <= (others => '0'); end if;           -- BRANCHES MISPREDICTED ON CDB
                 
                 when X"C80" => read_data <= csr_regs(0)(63 downto 32);           -- RDCYCLE
                 when X"C81" => read_data <= csr_regs(0)(63 downto 32);           -- RDTIME
