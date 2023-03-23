@@ -75,7 +75,7 @@ begin
         end if;
     end process;
     
-    pipeline_reg_0_next.generated_address <= std_logic_vector(unsigned(eu_in_0.operand_2) + unsigned(eu_in_0.immediate));
+    pipeline_reg_0_next.generated_address <= std_logic_vector(unsigned(eu_in_0.operand_2) + unsigned(eu_in_0.immediate)) when eu_in_0.operation_select(6) = '0' else eu_in_0.operand_2;
     pipeline_reg_0_next.generated_data <= eu_in_0.operand_1;
     pipeline_reg_0_next.generated_data_tag <= eu_in_0.phys_src_reg_2_addr;
     pipeline_reg_0_next.generated_data_valid <= uop_is_store and valid;

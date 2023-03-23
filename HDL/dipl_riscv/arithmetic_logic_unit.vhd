@@ -66,9 +66,9 @@ begin
         i_barrel_shifter_airth <= '0';
     
         if (alu_op_sel = ALU_OP_ADD) then               -- ADD        
-            result <= std_logic_vector(signed(operand_1) + signed(operand_2));
+            result <= std_logic_vector(unsigned(operand_1) + unsigned(operand_2));
         elsif (alu_op_sel = ALU_OP_SUB) then            -- SUB        
-            result <= std_logic_vector(signed(operand_1) - signed(operand_2));
+            result <= std_logic_vector(unsigned(operand_1) - unsigned(operand_2));
         elsif (alu_op_sel = ALU_OP_LESS) then            -- SET ON OP_1 < OP_2 SIGNED  
             result <= (OPERAND_WIDTH_BITS - 1 downto 1 => '0') & '1' when signed(operand_1) < signed(operand_2) else
                       (others => '0');

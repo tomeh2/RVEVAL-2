@@ -65,6 +65,7 @@ entity cache is
                                     
         addr_1 : in std_logic_vector(ADDR_SIZE_BITS - 1 downto 0);
         data_1 : in std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
+        cacheop_1 : in std_logic_vector(1 downto 0);
         is_write_1 : in std_logic;
         write_size_1 : in std_logic_vector(1 downto 0);                       -- 00: Byte | 01: Half-word | 10: Word
         valid_1 : in std_logic;
@@ -161,6 +162,7 @@ architecture rtl of cache is
         valid : std_logic;
         addr : std_logic_vector(ADDR_SIZE_BITS - 1 downto 0);
         data : std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
+        cacheop_1 : std_logic_vector(1 downto 0);
         is_write_1 : std_logic;
         write_size_1 : std_logic_vector(1 downto 0);
     end record;
@@ -170,6 +172,7 @@ architecture rtl of cache is
         addr : std_logic_vector(ADDR_SIZE_BITS - 1 downto 0);
         data : std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
         cacheline : std_logic_vector(CACHELINE_SIZE - 1 downto 0);
+        cacheop_1 : std_logic_vector(1 downto 0);
         hit_mask : std_logic_vector(ASSOCIATIVITY - 1 downto 0);
         evict_mask : std_logic_vector(ASSOCIATIVITY - 1 downto 0);
         set_valid_bits : std_logic_vector(ASSOCIATIVITY - 1 downto 0);
@@ -280,9 +283,16 @@ begin
     end generate;
 
     cacheline_write_gen_on : if ENABLE_WRITES = 1 generate
-        cacheline_evict_write_en <= not c2_c3_pipeline_reg_1.hit and c2_c3_pipeline_reg_1.set_full and c2_c3_pipeline_reg_1.valid and c2_c3_pipeline_reg_1.cacheline(CACHELINE_DIRTY_BIT) and not i_addr_noncacheable;
-        cacheline_evict_en <= not c2_c3_pipeline_reg_1.hit and c2_c3_pipeline_reg_1.set_full and c2_c3_pipeline_reg_1.valid and not i_addr_noncacheable;
-        cacheline_update_en <= cbc_writeback_en or (c2_c3_pipeline_reg_1.is_write_1 and c2_c3_pipeline_reg_1.valid and not i_addr_noncacheable);
+        cacheline_evict_write_en <= '1' when (c2_c3_pipeline_reg_1.hit = '0' and c2_c3_pipeline_reg_1.set_full = '1' and 
+                                    c2_c3_pipeline_reg_1.valid = '1' and c2_c3_pipeline_reg_1.cacheline(CACHELINE_DIRTY_BIT) = '1' and  
+                                    i_addr_noncacheable = '0' and c2_c3_pipeline_reg_1.cacheop_1 /= "10") or (c2_c3_pipeline_reg_1.hit = '1'  and c2_c3_pipeline_reg_1.is_write_1 = '1' and c2_c3_pipeline_reg_1.cacheop_1 = "10" and c2_c3_pipeline_reg_1.valid = '1') else '0';
+        cacheline_evict_en <= '1' when (c2_c3_pipeline_reg_1.hit = '0' and 
+                                        c2_c3_pipeline_reg_1.set_full = '1' and 
+                                        c2_c3_pipeline_reg_1.valid = '1' and 
+                                        i_addr_noncacheable = '0' and c2_c3_pipeline_reg_1.cacheop_1 /= "10") or 
+                                       (c2_c3_pipeline_reg_1.hit = '1' and c2_c3_pipeline_reg_1.is_write_1 = '1' and c2_c3_pipeline_reg_1.cacheop_1 = "10" and c2_c3_pipeline_reg_1.valid = '1') else '0';
+        cacheline_update_en <= '1' when cbc_writeback_en = '1' or 
+                                       (c2_c3_pipeline_reg_1.is_write_1 = '1' and c2_c3_pipeline_reg_1.valid = '1' and i_addr_noncacheable = '0' and c2_c3_pipeline_reg_1.cacheop_1 /= "10") else '0';
         process(all)
         begin
             if (c2_c3_pipeline_reg_1.is_write_1 = '1' and c2_c3_pipeline_reg_1.valid = '1') then
@@ -411,6 +421,7 @@ begin
                 if (i_stall = '0') then
                     c1_c2_pipeline_reg_1.addr <= addr_1;
                     c1_c2_pipeline_reg_1.is_write_1 <= is_write_1;
+                    c1_c2_pipeline_reg_1.cacheop_1 <= cacheop_1;
                     c1_c2_pipeline_reg_1.write_size_1 <= write_size_1;
                     c1_c2_pipeline_reg_1.data <= data_1;
                     
@@ -432,6 +443,7 @@ begin
                     c2_c3_pipeline_reg_1.hit <= i_hit;
                     c2_c3_pipeline_reg_1.hit_mask <= hit_bits;
                     c2_c3_pipeline_reg_1.is_write_1 <= c1_c2_pipeline_reg_1.is_write_1;
+                    c2_c3_pipeline_reg_1.cacheop_1 <= c1_c2_pipeline_reg_1.cacheop_1;
                     c2_c3_pipeline_reg_1.write_size_1 <= c1_c2_pipeline_reg_1.write_size_1;
                     c2_c3_pipeline_reg_1.data <= c1_c2_pipeline_reg_1.data;
                     c2_c3_pipeline_reg_1.set_full <= i_set_full;

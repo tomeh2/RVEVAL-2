@@ -116,9 +116,14 @@ begin
                 uop_alu_op_sel <= instruction(30) & instruction(14 downto 12);
                 
             when OPCODE_ALU_REG_IMM => 
-                uop.operation_type <= OPTYPE_INTEGER;      
+                uop.operation_type <= OPTYPE_INTEGER;  
+                if (instruction(14 downto 12) = "001" or instruction(14 downto 12) = "101") then
+                    uop_alu_op_sel(3) <= instruction(30); 
+                else
+                    uop_alu_op_sel(3) <= '0';
+                end if;
+                uop_alu_op_sel(2 downto 0) <= instruction(14 downto 12);
                 uop_uses_immediate <= '1';
-                uop_alu_op_sel <= '0' & instruction(14 downto 12);
                 
                 uop.arch_src_reg_2_addr <= (others => '0');
 
@@ -189,6 +194,13 @@ begin
                 
                     uop.arch_src_reg_1_addr <= (others => '0');
                 end if;
+            when OPCODE_MEM => 
+                uop.operation_type <= OPTYPE_STORE;
+                uop.operation_select(7) <= '1';
+                uop.operation_select(6) <= '1';
+                uop.operation_select(4 downto 3) <= instruction(21 downto 20);
+                
+                uop.arch_src_reg_2_addr <= (others => '0');
             when "XXXXX" | "UUUUU" => 
             
             when others => 

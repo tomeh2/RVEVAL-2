@@ -83,6 +83,7 @@ architecture structural of core is
     signal dcache_write_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
     signal dcache_write_data : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     signal dcache_write_size : std_logic_vector(1 downto 0);
+    signal dcache_write_cacheop : std_logic_vector(1 downto 0);
     signal dcache_write_valid : std_logic;
     signal dcache_write_ready : std_logic;
     signal dcache_write_hit : std_logic;
@@ -138,6 +139,7 @@ begin
                                 dcache_write_addr => dcache_write_addr,
                                 dcache_write_data => dcache_write_data,
                                 dcache_write_size => dcache_write_size,
+                                dcache_write_cacheop => dcache_write_cacheop,
                                 dcache_write_valid => dcache_write_valid,
                                 dcache_write_ready => dcache_write_ready,
                                 dcache_write_hit => dcache_write_hit,
@@ -182,6 +184,7 @@ begin
                                write_data_1 => dcache_write_data,
                                write_size_1 => dcache_write_size,
                                write_tag_1 => (others => '0'),
+                               write_cacheop_1 => dcache_write_cacheop,
                                write_valid_1 => dcache_write_valid,
                                write_ready_1 => dcache_write_ready,
                                write_hit_1 => dcache_write_hit,

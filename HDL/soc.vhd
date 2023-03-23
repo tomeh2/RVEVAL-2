@@ -1,24 +1,3 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 12/30/2022 03:08:05 PM
--- Design Name: 
--- Module Name: soc - rtl
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use WORK.CONFIG.ALL;
@@ -523,10 +502,9 @@ begin
                                      clk => clk);
     end generate;
                                  
-    -- 64KB RAM INSTANCE
     ram_memory_inst : entity work.ram_memory(rtl)
-                      generic map(SIZE_BYTES => 65536)
-                      port map(bus_addr => wb_addr(15 downto 0),
+                      generic map(SIZE_BYTES => RAM_KB * 1024)
+                      port map(bus_addr => wb_addr(18 downto 0),
                                bus_wdata => wb_wdata,
                                bus_rdata => wb_ram_rdata,
                                bus_wstrb => wb_wstrb,

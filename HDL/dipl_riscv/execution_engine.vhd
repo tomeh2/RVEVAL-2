@@ -50,6 +50,7 @@ entity execution_engine is
         dcache_write_addr : out std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
         dcache_write_data : out std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
         dcache_write_size : out std_logic_vector(1 downto 0);
+        dcache_write_cacheop : out std_logic_vector(1 downto 0);
         dcache_write_valid : out std_logic;
         dcache_write_ready : in std_logic;
         dcache_write_hit : in std_logic;
@@ -672,6 +673,7 @@ begin
                                cache_write_addr => dcache_write_addr,
                                cache_write_data => dcache_write_data,
                                cache_write_size => dcache_write_size,
+                               cache_write_cacheop => dcache_write_cacheop,
                                cache_write_valid => dcache_write_valid,
                                cache_write_ready => dcache_write_ready,
                                cache_write_hit => dcache_write_hit,

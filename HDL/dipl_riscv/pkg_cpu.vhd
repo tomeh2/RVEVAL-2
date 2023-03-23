@@ -40,7 +40,7 @@ package pkg_cpu is
     -- ========================= DEBUG =========================
     constant ENABLE_EXT_BUS_ILA : boolean := false;
     constant ENABLE_UART_ILA : boolean := false;
-    constant ENABLE_ARCH_REGFILE_MONITORING : boolean := false;
+    constant ENABLE_ARCH_REGFILE_MONITORING : boolean := true;
     -- =========================================================
     
     -- ========================= CAN BE MODIFIED =========================
@@ -59,20 +59,19 @@ package pkg_cpu is
     
     constant ICACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant ICACHE_INSTR_PER_CACHELINE : integer := 4;
-    constant ICACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
+    constant ICACHE_NUM_SETS : integer := 16;                     -- MUST BE POWER OF 2!
     --constant ICACHE_REPLACEMENT_POLICY : string := "FIFO";                -- In consideration
     
     constant DCACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant DCACHE_ENTRIES_PER_CACHELINE : integer := 4;
-    constant DCACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
-    --constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"FFFF_0000";
-    constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"8000_0000";
+    constant DCACHE_NUM_SETS : integer := 16;                     -- MUST BE POWER OF 2!
+    constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"FFFF_0000";
+    --constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"8000_0000";
     
     constant CSR_PERF_COUNTERS_EN : boolean := true;
     constant CSR_PERF_CNTR_BRANCHES : boolean := true;
-    
-    constant PERF_COUNTERS_EN : boolean := false;
-    constant PERF_COUNTERS_WIDTH_BITS : integer := 32;
+
+    constant IMPL_FE_ADDITIONAL_DECODE_PIPELINE_STAGE : boolean := false;
     -- ===================================================================
     
     constant DCACHE_CACHELINE_SIZE : integer := (CPU_ADDR_WIDTH_BITS - integer(ceil(log2(real(DCACHE_ENTRIES_PER_CACHELINE)))) - 
@@ -232,6 +231,7 @@ package pkg_cpu is
     constant OPCODE_ALU_REG_REG : std_logic_vector(4 downto 0) := "01100";
     constant OPCODE_ALU_REG_IMM : std_logic_vector(4 downto 0) := "00100";
     constant OPCODE_SYSTEM : std_logic_vector(4 downto 0) := "11100";
+    constant OPCODE_MEM : std_logic_vector(4 downto 0) := "00011";
     
     -- Load-Store Unit Operation Definitions
     constant LSU_OP_LW : std_logic_vector(7 downto 0) := "00000000";
@@ -328,6 +328,13 @@ package pkg_cpu is
         valid : std_logic;
     end record; 
     
+    type d1_d2_pipeline_reg_type is record
+        pc : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        branch_targ_mispred : std_logic;
+        uop : uop_instr_dec_type;
+        valid : std_logic;
+    end record; 
+    
     constant F1_F2_PIPELINE_REG_INIT : f1_f2_pipeline_reg_type := ((others => '0'),
                                                                    '0');
                                                                    
@@ -341,6 +348,7 @@ package pkg_cpu is
                                                                    (others => '0'),
                                                                    '0',
                                                                     '0');
+                                                                    
 end pkg_cpu;
 
 package body pkg_cpu is

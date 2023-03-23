@@ -81,7 +81,6 @@ entity load_store_unit_cache is
         lq_enqueue_en : in std_logic;
         lq_retire_en : in std_logic;
         
-        -- TEMPORARY BUS STUFF
         cache_read_addr : out std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
         cache_read_data : in std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
         cache_read_valid : out std_logic;
@@ -92,6 +91,7 @@ entity load_store_unit_cache is
         cache_write_addr : out std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
         cache_write_data : out std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
         cache_write_size : out std_logic_vector(1 downto 0);
+        cache_write_cacheop : out std_logic_vector(1 downto 0);
         cache_write_valid : out std_logic;
         cache_write_ready : in std_logic;
         cache_write_hit : in std_logic;
@@ -110,7 +110,7 @@ architecture rtl of load_store_unit_cache is
 
     constant SQ_TAG_BITS : integer := integer(ceil(log2(real(SQ_ENTRIES))));
     constant LQ_TAG_BITS : integer := integer(ceil(log2(real(LQ_ENTRIES))));
-    constant SQ_ENTRY_BITS : integer := CPU_ADDR_WIDTH_BITS + PHYS_REGFILE_ADDR_BITS + CPU_DATA_WIDTH_BITS + 6;
+    constant SQ_ENTRY_BITS : integer := CPU_ADDR_WIDTH_BITS + PHYS_REGFILE_ADDR_BITS + CPU_DATA_WIDTH_BITS + 6 + 3;
     constant LQ_ENTRY_BITS : integer := CPU_ADDR_WIDTH_BITS + DATA_TAG_BITS + SQ_ENTRIES + INSTR_TAG_BITS + BRANCHING_DEPTH + 6;
 
     -- SQ ENTRY INDEXES
@@ -124,6 +124,9 @@ architecture rtl of load_store_unit_cache is
     constant SQ_DATA_END : integer := SQ_ENTRY_BITS - CPU_ADDR_WIDTH_BITS - DATA_TAG_BITS - CPU_DATA_WIDTH_BITS - 2;
     constant SQ_SIZE_START : integer := SQ_ENTRY_BITS - CPU_ADDR_WIDTH_BITS - DATA_TAG_BITS - CPU_DATA_WIDTH_BITS - 3;
     constant SQ_SIZE_END : integer := SQ_ENTRY_BITS - CPU_ADDR_WIDTH_BITS - DATA_TAG_BITS - CPU_DATA_WIDTH_BITS - 2 - 2;
+    constant SQ_IS_CMO : integer := SQ_ENTRY_BITS - CPU_ADDR_WIDTH_BITS - DATA_TAG_BITS - CPU_DATA_WIDTH_BITS - 2 - 3;
+    constant SQ_CMO_OPCODE_START : integer := SQ_ENTRY_BITS - CPU_ADDR_WIDTH_BITS - DATA_TAG_BITS - CPU_DATA_WIDTH_BITS - 2 - 2 - 2;
+    constant SQ_CMO_OPCODE_END : integer := SQ_ENTRY_BITS - CPU_ADDR_WIDTH_BITS - DATA_TAG_BITS - CPU_DATA_WIDTH_BITS - 2 - 2 - 3;
     constant SQ_RETIRED_BIT : integer := 1;
     constant SQ_FINISHED_BIT : integer := 0;
     
@@ -266,6 +269,7 @@ begin
         cache_write_addr <= store_queue(to_integer(sq_head_counter_reg))(SQ_ADDR_START downto SQ_ADDR_END);
         cache_write_data <= store_queue(to_integer(sq_head_counter_reg))(SQ_DATA_START downto SQ_DATA_END);
         cache_write_size <= store_queue(to_integer(sq_head_counter_reg))(SQ_SIZE_START downto SQ_SIZE_END);
+        cache_write_cacheop <= store_queue(to_integer(sq_head_counter_reg))(SQ_CMO_OPCODE_START downto SQ_CMO_OPCODE_END);
     end process;
     
     wait_on_miss_cntrl : process(clk)
@@ -402,6 +406,8 @@ begin
                                                                     '0' &         
                                                                     DATA_ZERO &
                                                                     next_uop.operation_select(1 downto 0) & 
+                                                                    next_uop.operation_select(6) &
+                                                                    next_uop.operation_select(4 downto 3) & 
                                                                     '0' &
                                                                     '0';             
                 end if;

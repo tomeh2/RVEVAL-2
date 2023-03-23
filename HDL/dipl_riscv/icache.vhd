@@ -197,6 +197,7 @@ begin
                                addr_1 => read_addr,
                                data_1 => (others => '0'),
                                is_write_1 => '0',
+                               cacheop_1 => "00",
                                write_size_1 => (others => '0'),
                                valid_1 => read_en,
                                

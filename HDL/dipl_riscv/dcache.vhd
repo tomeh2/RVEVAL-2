@@ -46,6 +46,7 @@ entity dcache is
         
         write_addr_1 : in std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
         write_data_1 : in std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
+        write_cacheop_1 : in std_logic_vector(1 downto 0);
         write_size_1 : in std_logic_vector(1 downto 0);                         -- 00: 32-bit | 01: 16-bit | 10: 8-bit
         write_tag_1 : in std_logic_vector(STORE_QUEUE_TAG_BITS - 1 downto 0);
         write_valid_1 : in std_logic;
@@ -142,6 +143,7 @@ begin
                                addr_1 => c1_addr,
                                data_1 => write_data_1,
                                is_write_1 => i_write_ready_1,
+                               cacheop_1 => write_cacheop_1,
                                write_size_1 => write_size_1,
                                valid_1 => i_read_ready_1 or i_write_ready_1, 
                                

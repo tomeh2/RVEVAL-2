@@ -3,16 +3,19 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 package config is
-    constant CLOCK_FREQ_MHZ : integer := 110;
+    constant CLOCK_FREQ_MHZ : integer := 50;
     constant UART_BAUD_RATE : integer := 921600;
+    --constant UART_BAUD_RATE : integer := 5000000;
     constant STACK_ADDR : std_logic_vector(31 downto 0) := X"8001_0000";
     constant RESET_PC : std_logic_vector(31 downto 0) := X"0000_0000";
     constant BOOTLOADER_PATH : string := "../PROG/loader.hex";
     
     -- PICORV
     -- SERV
-        constant CPU_NAME : string := "MYRISC";
+    constant CPU_NAME : string := "PICORV";
     constant ENABLE_BUS_ILA_XILINX : boolean := false;
+    
+    constant RAM_KB : integer := 512;
     
     type wb_data_type is array (natural range <>) of std_logic_vector(31 downto 0);
     subtype wb_addr_type is std_logic_vector(31 downto 0);
