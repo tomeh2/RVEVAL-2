@@ -66,6 +66,10 @@ entity execution_engine is
         fe_branch_predicted_pc : in std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
         fe_branch_prediction : in std_logic;
         
+        perfcntr_br_targ_mispred : in std_logic;
+        perfcntr_bc_empty : in std_logic;
+        perfcntr_icache_stall : in std_logic;
+        
         perf_commit_ready : out std_logic;
         
         reset : in std_logic;
@@ -493,8 +497,16 @@ begin
                    port map(read_addr => pipeline_reg_2_0.uop.csr,
                             read_data => csr_read_val,
                             
-                            branch_commited => is_cond_branch_commit,
-                            branches_mispredicted_cdb => i_branch_mispredict_detected,
+                            perfcntr_br_commit => is_cond_branch_commit,
+                            perfcntr_br_mispred_cdb => i_branch_mispredict_detected,
+                            perfcntr_br_mispred_fe => perfcntr_br_targ_mispred,
+                            perfcntr_bc_empty => perfcntr_bc_empty,
+                            
+                            perfcntr_icache_stall => perfcntr_icache_stall,
+                            
+                            dcache_access => (dcache_write_valid and dcache_write_ready) or (dcache_read_valid and dcache_read_ready),
+                            dcache_miss => dcache_write_miss or dcache_read_miss,
+                            
                             instr_ret => perf_commit_ready,
                             
                             clk => clk,

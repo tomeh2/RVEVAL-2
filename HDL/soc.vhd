@@ -504,7 +504,7 @@ begin
                                  
     ram_memory_inst : entity work.ram_memory(rtl)
                       generic map(SIZE_BYTES => RAM_KB * 1024)
-                      port map(bus_addr => wb_addr(18 downto 0),
+                      port map(bus_addr => wb_addr(15 downto 0),
                                bus_wdata => wb_wdata,
                                bus_rdata => wb_ram_rdata,
                                bus_wstrb => wb_wstrb,

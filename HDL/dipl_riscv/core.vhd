@@ -92,6 +92,10 @@ architecture structural of core is
     signal dcache_loaded_cacheline_tag : std_logic_vector(DCACHE_TAG_SIZE - 1 downto 0);
     signal dcache_loaded_cacheline_tag_valid : std_logic;
     
+    signal perfcntr_br_targ_mispred : std_logic;
+    signal perfcntr_bc_empty : std_logic;
+    signal perfcntr_icache_stall : std_logic;
+    
     signal cdb : cdb_type;
 begin
     front_end : entity work.front_end(structural)
@@ -110,6 +114,10 @@ begin
                          branch_mask => branch_mask,
                          branch_predicted_pc => branch_predicted_pc,
                          branch_prediction => branch_prediction,
+                         
+                         perfcntr_br_targ_mispred => perfcntr_br_targ_mispred,
+                         perfcntr_bc_empty => perfcntr_bc_empty,
+                         perfcntr_icache_stall => perfcntr_icache_stall,
                         
                          clk => clk,
                          reset => reset);
@@ -156,6 +164,10 @@ begin
                                 fe_branch_mask => branch_mask,
                                 fe_branch_predicted_pc => branch_predicted_pc,
                                 fe_branch_prediction => branch_prediction,
+                                
+                                perfcntr_br_targ_mispred => perfcntr_br_targ_mispred,
+                                perfcntr_bc_empty => perfcntr_bc_empty,
+                                perfcntr_icache_stall => perfcntr_icache_stall,
                                    
                                 next_uop => uop_ee_in,
                                 clk => clk,

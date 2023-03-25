@@ -32,8 +32,17 @@ entity zicsr_registers is
         read_addr : in std_logic_vector(11 downto 0);
         read_data : out std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     
-        branch_commited : in std_logic;
-        branches_mispredicted_cdb : in std_logic;
+        perfcntr_br_commit : in std_logic;
+        perfcntr_br_mispred_cdb : in std_logic;
+        perfcntr_br_mispred_fe : in std_logic;
+        perfcntr_bc_empty : in std_logic;
+        
+        
+        perfcntr_icache_stall : in std_logic;
+        
+        dcache_access : in std_logic;
+        dcache_miss : in std_logic;
+        
         instr_ret : in std_logic;
         
         clk : in std_logic;
@@ -42,28 +51,66 @@ entity zicsr_registers is
 end zicsr_registers;
 
 architecture rtl of zicsr_registers is
-    type csr_regs_type is array (2 downto 0) of std_logic_vector(63 downto 0);      -- 0: RDTIME AND RDCYCLE | 1: INSTRET
-    signal csr_regs : csr_regs_type;
+    constant CSR_CYCLES : integer := 0;
+    constant CSR_INSTRET : integer := 1;
+    
+    constant CSR_BR_COMMIT : integer := 0;
+    constant CSR_BR_MISPRED_CDB : integer := 1;
+    constant CSR_BR_MISPRED_FE : integer := 2;
+    constant CSR_BC_EMPTY : integer := 3;
+    constant CSR_DCACHE_ACC : integer := 4;
+    constant CSR_DCACHE_MISS : integer := 5;
+    constant CSR_ICACHE_STALL : integer := 6;
+
+    type csr_regs_64_type is array (1 downto 0) of std_logic_vector(63 downto 0);      -- 0: RDTIME AND RDCYCLE | 1: INSTRET
+    type csr_regs_32_type is array (6 downto 0) of std_logic_vector(31 downto 0);
+    signal csr_regs_64 : csr_regs_64_type;
+    signal csr_regs_32 : csr_regs_32_type;
 begin
     process(clk)
     begin
         if (rising_edge(clk)) then
             if (reset = '1') then
-                csr_regs <= (others => (others => '0'));
+                csr_regs_32 <= (others => (others => '0'));
+                csr_regs_64 <= (others => (others => '0'));
             else
-                csr_regs(0) <= std_logic_vector(unsigned(csr_regs(0)) + 1);
+                csr_regs_64(CSR_CYCLES) <= std_logic_vector(unsigned(csr_regs_64(CSR_CYCLES)) + 1);
                 
                 if (instr_ret = '1') then
-                    csr_regs(1) <= std_logic_vector(unsigned(csr_regs(1)) + 1);
+                    csr_regs_64(CSR_INSTRET) <= std_logic_vector(unsigned(csr_regs_64(CSR_INSTRET)) + 1);
                 end if;
                 
                 if (CSR_PERF_CNTR_BRANCHES = true) then
-                    if (branch_commited = '1') then
-                        csr_regs(2)(31 downto 0) <= std_logic_vector(unsigned(csr_regs(2)(31 downto 0)) + 1);
+                    if (perfcntr_br_commit = '1') then
+                        csr_regs_32(CSR_BR_COMMIT) <= std_logic_vector(unsigned(csr_regs_32(CSR_BR_COMMIT)) + 1);
                     end if;
                     
-                    if (branches_mispredicted_cdb = '1') then
-                        csr_regs(2)(63 downto 32) <= std_logic_vector(unsigned(csr_regs(2)(63 downto 32)) + 1);
+                    if (perfcntr_br_mispred_cdb = '1') then
+                        csr_regs_32(CSR_BR_MISPRED_CDB) <= std_logic_vector(unsigned(csr_regs_32(CSR_BR_MISPRED_CDB)) + 1);
+                    end if;
+                    
+                    if (perfcntr_br_mispred_fe = '1') then
+                        csr_regs_32(CSR_BR_MISPRED_FE) <= std_logic_vector(unsigned(csr_regs_32(CSR_BR_MISPRED_FE)) + 1);
+                    end if;
+                    
+                    if (perfcntr_bc_empty = '1') then
+                        csr_regs_32(CSR_BC_EMPTY) <= std_logic_vector(unsigned(csr_regs_32(CSR_BC_EMPTY)) + 1);
+                    end if;
+                end if;
+                
+                if (CSR_PERF_CNTR_DMEM = true) then
+                    if (dcache_access = '1') then
+                        csr_regs_32(CSR_DCACHE_ACC) <= std_logic_vector(unsigned(csr_regs_32(CSR_DCACHE_ACC)) + 1);
+                    end if;
+                    
+                    if (dcache_miss = '1') then
+                        csr_regs_32(CSR_DCACHE_MISS) <= std_logic_vector(unsigned(csr_regs_32(CSR_DCACHE_MISS)) + 1);
+                    end if;
+                end if;
+                
+                if (CSR_PERF_CNTR_IMEM = true) then
+                    if (perfcntr_icache_stall = '1') then
+                        csr_regs_32(CSR_ICACHE_STALL) <= std_logic_vector(unsigned(csr_regs_32(CSR_ICACHE_STALL)) + 1);
                     end if;
                 end if;
             end if;         
@@ -74,16 +121,23 @@ begin
     begin
         if (rising_edge(clk)) then
             case read_addr is 
-                when X"C00" => read_data <= csr_regs(0)(31 downto 0);            -- RDCYCLE
-                when X"C01" => read_data <= csr_regs(0)(31 downto 0);            -- RDTIME
-                when X"C02" => read_data <= csr_regs(1)(31 downto 0);            -- INSTRET
+                when X"C00" => read_data <= csr_regs_64(CSR_CYCLES)(31 downto 0);            -- RDCYCLE
+                when X"C01" => read_data <= csr_regs_64(CSR_CYCLES)(31 downto 0);            -- RDTIME
+                when X"C02" => read_data <= csr_regs_64(CSR_INSTRET)(31 downto 0);            -- INSTRET
                
-                when X"C03" => if (CSR_PERF_CNTR_BRANCHES = true) then read_data <= csr_regs(2)(31 downto 0); else read_data <= (others => '0'); end if;            -- BRANCHES EXECUTED
-                when X"C04" => if (CSR_PERF_CNTR_BRANCHES = true) then read_data <= csr_regs(2)(63 downto 32); else read_data <= (others => '0'); end if;           -- BRANCHES MISPREDICTED ON CDB
+                when X"C03" => if (CSR_PERF_CNTR_BRANCHES = true) then read_data <= csr_regs_32(CSR_BR_COMMIT); else read_data <= (others => '0'); end if;            -- BRANCHES EXECUTED
+                when X"C04" => if (CSR_PERF_CNTR_BRANCHES = true) then read_data <= csr_regs_32(CSR_BR_MISPRED_CDB); else read_data <= (others => '0'); end if;           -- BRANCHES MISPREDICTED ON CDB
+                when X"C05" => if (CSR_PERF_CNTR_BRANCHES = true) then read_data <= csr_regs_32(CSR_BR_MISPRED_FE); else read_data <= (others => '0'); end if;           -- BRANCHES MISPREDICTED IN FE 
+                when X"C06" => if (CSR_PERF_CNTR_BRANCHES = true) then read_data <= csr_regs_32(CSR_BC_EMPTY); else read_data <= (others => '0'); end if;           -- BRANCHES MISPREDICTED IN FE 
                 
-                when X"C80" => read_data <= csr_regs(0)(63 downto 32);           -- RDCYCLE
-                when X"C81" => read_data <= csr_regs(0)(63 downto 32);           -- RDTIME
-                when X"C82" => read_data <= csr_regs(1)(63 downto 32);           -- INSTRET
+                when X"C07" => if (CSR_PERF_CNTR_DMEM = true) then read_data <= csr_regs_32(CSR_DCACHE_ACC); else read_data <= (others => '0'); end if;            --  DCACHE ACCESSES
+                when X"C08" => if (CSR_PERF_CNTR_DMEM = true) then read_data <= csr_regs_32(CSR_DCACHE_MISS); else read_data <= (others => '0'); end if;           --  DCACHE MISSES
+                
+                when X"C09" => if (CSR_PERF_CNTR_IMEM = true) then read_data <= csr_regs_32(CSR_ICACHE_STALL); else read_data <= (others => '0'); end if;           --  ICACHE STALL CYCLES
+                
+                when X"C80" => read_data <= csr_regs_64(CSR_CYCLES)(63 downto 32);           -- RDCYCLE
+                when X"C81" => read_data <= csr_regs_64(CSR_CYCLES)(63 downto 32);           -- RDTIME
+                when X"C82" => read_data <= csr_regs_64(CSR_INSTRET)(63 downto 32);           -- INSTRET
                 
                 when others => read_data <= (others => '0');
             end case;

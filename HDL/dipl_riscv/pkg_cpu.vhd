@@ -40,7 +40,7 @@ package pkg_cpu is
     -- ========================= DEBUG =========================
     constant ENABLE_EXT_BUS_ILA : boolean := false;
     constant ENABLE_UART_ILA : boolean := false;
-    constant ENABLE_ARCH_REGFILE_MONITORING : boolean := true;
+    constant ENABLE_ARCH_REGFILE_MONITORING : boolean := false;
     -- =========================================================
     
     -- ========================= CAN BE MODIFIED =========================
@@ -54,22 +54,25 @@ package pkg_cpu is
     constant BP_TYPE : string := "2BSP";              -- Selects a branch predictor type to implement. Options: STATIC, 2BSP (2-Bit Saturating Counters)
     constant BP_STATIC_PREDICTION : std_logic := '1';      -- Value of 1 configures the static predictor to always predict taken, 0 does the opposite
     constant BP_2BST_INIT_VAL : std_logic_vector(1 downto 0) := "00";  -- Initial value of 2-bit saturating counters
-    constant BP_ENTRIES : integer := 32;                 -- MUST BE POWER OF 2!
-    constant BTB_TAG_BITS : integer := 16;
+    constant BP_ENTRIES : integer := 16;                 -- MUST BE POWER OF 2!
+    --constant BTB_TAG_BITS : integer := 16;
+    constant BTB_TAG_BITS : integer := 22;
     
     constant ICACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant ICACHE_INSTR_PER_CACHELINE : integer := 4;
-    constant ICACHE_NUM_SETS : integer := 16;                     -- MUST BE POWER OF 2!
+    constant ICACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
     --constant ICACHE_REPLACEMENT_POLICY : string := "FIFO";                -- In consideration
     
     constant DCACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant DCACHE_ENTRIES_PER_CACHELINE : integer := 4;
-    constant DCACHE_NUM_SETS : integer := 16;                     -- MUST BE POWER OF 2!
+    constant DCACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
     constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"FFFF_0000";
     --constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"8000_0000";
     
     constant CSR_PERF_COUNTERS_EN : boolean := true;
     constant CSR_PERF_CNTR_BRANCHES : boolean := true;
+    constant CSR_PERF_CNTR_DMEM : boolean := true;
+    constant CSR_PERF_CNTR_IMEM : boolean := true;
 
     constant IMPL_FE_ADDITIONAL_DECODE_PIPELINE_STAGE : boolean := false;
     -- ===================================================================
@@ -219,6 +222,7 @@ package pkg_cpu is
     constant OPTYPE_LOAD : std_logic_vector(2 downto 0) := "010";
     constant OPTYPE_STORE : std_logic_vector(2 downto 0) := "011";
     constant OPTYPE_SYSTEM : std_logic_vector(2 downto 0) := "100";
+    --constant OPTYPE_FENCE : std_logic_vector(2 downto 0) := "101";
     
     -- OPCODE Definitions
     constant OPCODE_LUI : std_logic_vector(4 downto 0) := "01101";
@@ -280,6 +284,8 @@ package pkg_cpu is
         branch_mispredicted : std_logic;
         is_jalr : std_logic;            -- JALR is special by the fact that it is the only instruction whose target PC cannot be determined immediately from the instruction itself, so in order to branch
                                         -- properly we need to know if cdb has the result of a JALR instruction to fill the PC with the correct value
+        is_jal : std_logic;
+                                        
         valid : std_logic;
     end record;
     
@@ -289,6 +295,7 @@ package pkg_cpu is
                                             (others => '0'),
                                             (others => '0'),
                                             (others => '0'),
+                                            '0',
                                             '0',
                                             '0',
                                             '0',

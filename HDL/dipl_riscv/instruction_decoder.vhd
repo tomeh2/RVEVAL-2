@@ -170,7 +170,7 @@ begin
                 uop_is_jal <= '1';
                 uop_uses_pc <= '1';
                 is_uncond_branch <= '1';
-                uop_negate_branch_cond <= '1';
+                --uop_negate_branch_cond <= '1';
 
             when OPCODE_JALR =>
                 uop.operation_type <= OPTYPE_BRANCH;        -- This instruction gets treated like a conditional branch by the Exec. Engine, but as a branch that is always taken

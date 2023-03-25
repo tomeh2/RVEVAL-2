@@ -104,7 +104,7 @@ begin
     alu_comp_res_n <= not alu_result(0);
     branch_taken <= (alu_comp_res or eu_in_0.operation_select(9) or eu_in_0.operation_select(8)) when eu_in_0.operation_select(4) = '0' else alu_comp_res_n;
 
-    branch_target_addr_t_base <= eu_in_0.operand_1 when eu_in_0.operation_select(9) or eu_in_0.operation_select(8) else eu_in_0.pc;
+    branch_target_addr_t_base <= eu_in_0.operand_1 when eu_in_0.operation_select(8) else eu_in_0.pc;
     branch_target_addr_t <= std_logic_vector(unsigned(branch_target_addr_t_base) + unsigned(eu_in_0.immediate));
     branch_target_addr_nt <= std_logic_vector(unsigned(eu_in_0.pc) + 4);
     
@@ -116,9 +116,10 @@ begin
     eu0_pipeline_reg_0_next.instr_tag <= eu_in_0.instr_tag;
     eu0_pipeline_reg_0_next.phys_dest_reg <= eu_in_0.phys_dest_reg_addr;
     eu0_pipeline_reg_0_next.branch_mask <= eu_in_0.branch_mask;
-    eu0_pipeline_reg_0_next.branch_taken <= branch_taken and eu_in_0.operation_select(6);
+    eu0_pipeline_reg_0_next.branch_taken <= (branch_taken and eu_in_0.operation_select(6)) or eu_in_0.operation_select(8) or eu_in_0.operation_select(9);
     eu0_pipeline_reg_0_next.branch_mispredicted <= '1' when (eu_in_0.operation_select(6) = '1' and eu_in_0.branch_predicted_outcome /= branch_taken) or (eu_in_0.branch_predicted_target_pc /= branch_target_addr and eu_in_0.operation_select(8) = '1') else '0';
     eu0_pipeline_reg_0_next.is_jalr <= eu_in_0.operation_select(8);
+    eu0_pipeline_reg_0_next.is_jal <= eu_in_0.operation_select(9);
     eu0_pipeline_reg_0_next.valid <= '1' when valid = '1' and not ((eu_in_0.speculated_branches_mask and eu0_pipeline_reg_0.branch_mask) /= BRANCH_MASK_ZERO and eu0_pipeline_reg_0.valid = '1' and eu0_pipeline_reg_0.branch_mispredicted = '1') else '0';
     
     i_ready <= not (eu0_pipeline_reg_0.valid and not cdb_granted);
@@ -127,7 +128,3 @@ begin
     cdb_request <= eu0_pipeline_reg_0.valid;
     cdb <= eu0_pipeline_reg_0;
 end rtl;
-
-
-
-
