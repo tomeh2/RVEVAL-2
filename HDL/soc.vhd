@@ -1,5 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.MATH_REAL.ALL;
+use IEEE.NUMERIC_STD.ALL;
 use WORK.CONFIG.ALL;
 
 library neorv32;
@@ -504,7 +506,7 @@ begin
                                  
     ram_memory_inst : entity work.ram_memory(rtl)
                       generic map(SIZE_BYTES => RAM_KB * 1024)
-                      port map(bus_addr => wb_addr(15 downto 0),
+                      port map(bus_addr => wb_addr(integer(ceil(log2(real(RAM_KB * 1024)))) - 1 downto 0),
                                bus_wdata => wb_wdata,
                                bus_rdata => wb_ram_rdata,
                                bus_wstrb => wb_wstrb,

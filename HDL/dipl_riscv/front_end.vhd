@@ -282,9 +282,9 @@ begin
                                         
                                         branch_taken_pc => d1_branch_taken_pc,
                                         
-                                        is_speculative_branch => d1_is_speculative_br,
-                                        is_uncond_branch => d1_is_uncond_br,
-                                        is_jalr => d1_is_jalr,
+                                        --is_speculative_branch => d1_is_speculative_br,
+                                        --is_uncond_branch => d1_is_uncond_br,
+                                        --is_jalr => d1_is_jalr,
                                         
                                         uop => d1_instr_dec_uop);
                                         
@@ -303,29 +303,29 @@ begin
                     
     -- Since all branch instructions (except for JALR) have target addresses which can be computed immediately,
     -- We can already resolve most branch target mispredicts
-    d1_branch_target_mismatch <= '1' when f3_d1_pipeline_reg.branch_pred_target /= d1_branch_taken_pc else '0';
-                           
-    d1_is_jal <= d1_is_uncond_br and not d1_is_jalr;           
+    early_mispred_det_gen : if (ENABLE_EARLY_MISPREDICT_DETECTION = true) generate
+        d1_is_uncond_br <= '1' when d1_instr_dec_uop.operation_type = OPTYPE_BRANCH and (d1_instr_dec_uop.operation_select(8) = '1' or d1_instr_dec_uop.operation_select(9) = '1') else '0';
+        d1_is_jalr <= '1' when d1_instr_dec_uop.operation_type = OPTYPE_BRANCH and d1_instr_dec_uop.operation_select(8) = '1' else '0';
+        d1_is_jal <= '1' when d1_instr_dec_uop.operation_type = OPTYPE_BRANCH and d1_instr_dec_uop.operation_select(9) = '1' else '0';
     
-    d1_jal_mispred <= d1_is_jal and (d1_branch_target_mismatch or not f3_d1_pipeline_reg.branch_pred_outcome);
-    d1_jalr_mispred <= d1_is_jalr and not f3_d1_pipeline_reg.branch_pred_outcome;
-    d1_cond_br_mispred <= f3_d1_pipeline_reg.branch_pred_outcome and d1_is_speculative_br and not d1_is_jalr and d1_branch_target_mismatch;
-    d1_not_br_mispred <= not d1_is_uncond_br and not d1_is_speculative_br and f3_d1_pipeline_reg.branch_pred_outcome;
+        d1_jal_mispred <= d1_is_jal and (d1_branch_target_mismatch or not f3_d1_pipeline_reg.branch_pred_outcome);
+        d1_jalr_mispred <= d1_is_jalr and not f3_d1_pipeline_reg.branch_pred_outcome;
+        d1_cond_br_mispred <= f3_d1_pipeline_reg.branch_pred_outcome and d1_is_speculative_br and not d1_is_jalr and d1_branch_target_mismatch;
+        d1_not_br_mispred <= not d1_is_uncond_br and not d1_is_speculative_br and f3_d1_pipeline_reg.branch_pred_outcome;
     
-    d1_branch_target_mispredict <= (d1_jal_mispred or d1_jalr_mispred or d1_cond_br_mispred or d1_not_br_mispred) and f3_d1_pipeline_reg.valid;
-    --d1_branch_target_mispredict <= '0';
+        d1_branch_target_mismatch <= '1' when f3_d1_pipeline_reg.branch_pred_target /= d1_branch_taken_pc else '0';
     
---    d1_branch_target_mispredict <= '1' when (((f3_d1_pipeline_reg.branch_pred_outcome = '1' and 
---                                            ((d1_branch_target_mismatch = '1' and d1_is_jalr = '0') or      -- Was a branch instruction
---                                            (d1_is_speculative_br = '0' and d1_is_uncond_br = '0'))) or
---                                            (d1_is_uncond_br = '1' and d1_is_jalr = '0' and 
---                                            (d1_branch_target_mismatch = '1' or f3_d1_pipeline_reg.branch_pred_outcome = '0'))) 
---                                            and f3_d1_pipeline_reg.valid = '1') else '0';                           -- Was not a branch instruction
-
-    d1_target_mispred_recovery_pc <= std_logic_vector(unsigned(f3_d1_pipeline_reg.pc) + 4) when ((d1_is_speculative_br = '0' and d1_is_uncond_br = '0') or
+        d1_branch_target_mispredict <= (d1_jal_mispred or d1_jalr_mispred or d1_cond_br_mispred or d1_not_br_mispred) and f3_d1_pipeline_reg.valid;
+        
+        d1_target_mispred_recovery_pc <= std_logic_vector(unsigned(f3_d1_pipeline_reg.pc) + 4) when ((d1_is_speculative_br = '0' and d1_is_uncond_br = '0') or
                                                                                                 (d1_is_speculative_br = '1' and f3_d1_pipeline_reg.branch_pred_outcome = '0'))
-                                                                                           else d1_branch_taken_pc;
-                                       
+                                                                                                else d1_branch_taken_pc;
+    else generate
+        d1_branch_target_mispredict <= '0';
+        d1_target_mispred_recovery_pc <= (others => '0');
+    end generate;
+    d1_is_speculative_br <= '1' when d1_instr_dec_uop.operation_type = OPTYPE_BRANCH and (d1_instr_dec_uop.operation_select(6) = '1') else '0';
+          
     d1_fifo_insert_ready <= not d1_bc_empty and not fifo_full and f3_d1_pipeline_reg.valid;
                                        
     decoded_uop.pc <= f3_d1_pipeline_reg.pc;
@@ -342,7 +342,8 @@ begin
     decoded_uop_valid <= d1_fifo_insert_ready and not flush_pipeline;
     
     branch_mask <= d1_alloc_branch_mask;
-    branch_predicted_pc <= d1_target_mispred_recovery_pc;
+    --branch_predicted_pc <= d1_target_mispred_recovery_pc;
+    branch_predicted_pc <= f3_d1_pipeline_reg.branch_pred_target;
     branch_prediction <= f3_d1_pipeline_reg.branch_pred_outcome;
     -- ==============================================================
     

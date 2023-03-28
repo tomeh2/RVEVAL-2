@@ -54,25 +54,27 @@ package pkg_cpu is
     constant BP_TYPE : string := "2BSP";              -- Selects a branch predictor type to implement. Options: STATIC, 2BSP (2-Bit Saturating Counters)
     constant BP_STATIC_PREDICTION : std_logic := '1';      -- Value of 1 configures the static predictor to always predict taken, 0 does the opposite
     constant BP_2BST_INIT_VAL : std_logic_vector(1 downto 0) := "00";  -- Initial value of 2-bit saturating counters
-    constant BP_ENTRIES : integer := 16;                 -- MUST BE POWER OF 2!
+    constant BP_ENTRIES : integer := 256;                 -- MUST BE POWER OF 2!
     --constant BTB_TAG_BITS : integer := 16;
     constant BTB_TAG_BITS : integer := 22;
     
     constant ICACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant ICACHE_INSTR_PER_CACHELINE : integer := 4;
-    constant ICACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
+    constant ICACHE_NUM_SETS : integer := 256;                     -- MUST BE POWER OF 2!
     --constant ICACHE_REPLACEMENT_POLICY : string := "FIFO";                -- In consideration
     
     constant DCACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant DCACHE_ENTRIES_PER_CACHELINE : integer := 4;
-    constant DCACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
+    constant DCACHE_NUM_SETS : integer := 256;                     -- MUST BE POWER OF 2!
     constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"FFFF_0000";
     --constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"8000_0000";
     
     constant CSR_PERF_COUNTERS_EN : boolean := true;
     constant CSR_PERF_CNTR_BRANCHES : boolean := true;
-    constant CSR_PERF_CNTR_DMEM : boolean := true;
+    constant CSR_PERF_CNTR_DMEM : boolean := false;
     constant CSR_PERF_CNTR_IMEM : boolean := true;
+    
+    constant ENABLE_EARLY_MISPREDICT_DETECTION : boolean := false; 
 
     constant IMPL_FE_ADDITIONAL_DECODE_PIPELINE_STAGE : boolean := false;
     -- ===================================================================

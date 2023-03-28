@@ -34,9 +34,9 @@ entity instruction_decoder is
         
         branch_taken_pc : out std_logic_vector(31 downto 0);
         
-        is_speculative_branch : out std_logic;
-        is_uncond_branch : out std_logic;
-        is_jalr : out std_logic;
+        --is_speculative_branch : out std_logic;
+        --is_uncond_branch : out std_logic;
+        --is_jalr : out std_logic;
 
         uop : out uop_instr_dec_type
     );
@@ -102,10 +102,6 @@ begin
         uop.operation_select(OPERATION_SELECT_BITS - 1 downto 3) <= (others => '0');
         branch_op_sel <= (others => '0');
         
-        is_speculative_branch <= '0';
-        is_uncond_branch <= '0';
-        is_jalr <= '0';
-        
         branch_taken_pc <= std_logic_vector(unsigned(pc) + unsigned(uop.immediate));
 
         uop_alu_op_sel(2 downto 0) <= instruction(14 downto 12);
@@ -158,31 +154,30 @@ begin
                 uop_is_speculative_branch <= '1';
                 uop_negate_branch_cond <= instruction(12);
                 uop_alu_op_sel <= branch_op_sel;
-                
-                is_speculative_branch <= '1';
-                
+
                 uop.arch_dest_reg_addr <= "00000";
                 
-            when OPCODE_JAL => 
-                uop.operation_type <= OPTYPE_INTEGER;
+            when OPCODE_JAL | OPCODE_JALR => 
+                uop.operation_type <= OPTYPE_BRANCH;
                 uop.operation_select(2 downto 0) <= "000";
                 
-                uop_is_jal <= '1';
+                if (instruction(3) = '1') then  -- JAL
+                    uop_is_jal <= '1';
+                else
+                    uop_is_jalr <= '1';
+                end if;
+                --uop_is_jal <= '1';
                 uop_uses_pc <= '1';
-                is_uncond_branch <= '1';
+                uop_is_speculative_branch <= '1';
                 --uop_negate_branch_cond <= '1';
 
-            when OPCODE_JALR =>
-                uop.operation_type <= OPTYPE_BRANCH;        -- This instruction gets treated like a conditional branch by the Exec. Engine, but as a branch that is always taken
-                uop.operation_select(2 downto 0) <= "000";  -- No conditional branch has this alu op sel value so it can be used to identify this as a JALR instruction
+--            when OPCODE_JALR =>
+--                uop.operation_type <= OPTYPE_BRANCH;        -- This instruction gets treated like a conditional branch by the Exec. Engine, but as a branch that is always taken
+--                uop.operation_select(2 downto 0) <= "000";  -- No conditional branch has this alu op sel value so it can be used to identify this as a JALR instruction
                 
-                uop_is_jalr <= '1';
-                is_speculative_branch <= '1';
-                uop_uses_pc <= '1';
-                --uop_uses_immediate <= '1';
-                uop_is_speculative_branch <= '1';
-                is_uncond_branch <= '1';
-                is_jalr <= '1';
+--                uop_is_jalr <= '1';
+--                uop_uses_pc <= '1';
+--                uop_is_speculative_branch <= '1';
             
             when OPCODE_SYSTEM =>
                 uop.operation_type <= (others => '0');
