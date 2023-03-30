@@ -37,11 +37,18 @@ entity zicsr_registers is
         perfcntr_br_mispred_fe : in std_logic;
         perfcntr_bc_empty : in std_logic;
         
-        
         perfcntr_icache_stall : in std_logic;
         
         dcache_access : in std_logic;
         dcache_miss : in std_logic;
+        
+        perfcntr_issue_stall_cycles : in std_logic;
+        perfcntr_fifo_full : in std_logic;
+        perfcntr_raa_empty : in std_logic;
+        perfcntr_rob_full : in std_logic;
+        perfcntr_sched_full : in std_logic;
+        perfcntr_lq_full : in std_logic;
+        perfcntr_sq_full : in std_logic;
         
         instr_ret : in std_logic;
         
@@ -61,9 +68,16 @@ architecture rtl of zicsr_registers is
     constant CSR_DCACHE_ACC : integer := 4;
     constant CSR_DCACHE_MISS : integer := 5;
     constant CSR_ICACHE_STALL : integer := 6;
+    constant CSR_ISSUE_STALL_CYC : integer := 7;
+    constant CSR_FIFO_FULL : integer := 8;
+    constant CSR_RAA_EMPTY : integer := 9;
+    constant CSR_ROB_FULL : integer := 10;
+    constant CSR_SCHED_FULL : integer := 11;
+    constant CSR_LQ_FULL : integer := 12;
+    constant CSR_SQ_FULL : integer := 13;
 
     type csr_regs_64_type is array (1 downto 0) of std_logic_vector(63 downto 0);      -- 0: RDTIME AND RDCYCLE | 1: INSTRET
-    type csr_regs_32_type is array (6 downto 0) of std_logic_vector(31 downto 0);
+    type csr_regs_32_type is array (13 downto 0) of std_logic_vector(31 downto 0);
     signal csr_regs_64 : csr_regs_64_type;
     signal csr_regs_32 : csr_regs_32_type;
 begin
@@ -113,6 +127,36 @@ begin
                         csr_regs_32(CSR_ICACHE_STALL) <= std_logic_vector(unsigned(csr_regs_32(CSR_ICACHE_STALL)) + 1);
                     end if;
                 end if;
+                
+                if (CSR_PERF_CNTR_EE = true) then
+                    if (perfcntr_issue_stall_cycles = '1') then
+                        csr_regs_32(CSR_ISSUE_STALL_CYC) <= std_logic_vector(unsigned(csr_regs_32(CSR_ISSUE_STALL_CYC)) + 1);
+                    end if;
+                    
+                    if (perfcntr_fifo_full = '1') then
+                        csr_regs_32(CSR_FIFO_FULL) <= std_logic_vector(unsigned(csr_regs_32(CSR_FIFO_FULL)) + 1);
+                    end if;
+                    
+                    if (perfcntr_raa_empty = '1') then
+                        csr_regs_32(CSR_RAA_EMPTY) <= std_logic_vector(unsigned(csr_regs_32(CSR_RAA_EMPTY)) + 1);
+                    end if;
+                    
+                    if (perfcntr_rob_full = '1') then
+                        csr_regs_32(CSR_ROB_FULL) <= std_logic_vector(unsigned(csr_regs_32(CSR_ROB_FULL)) + 1);
+                    end if;
+                    
+                    if (perfcntr_sched_full = '1') then
+                        csr_regs_32(CSR_SCHED_FULL) <= std_logic_vector(unsigned(csr_regs_32(CSR_SCHED_FULL)) + 1);
+                    end if;
+                    
+                    if (perfcntr_lq_full = '1') then
+                        csr_regs_32(CSR_LQ_FULL) <= std_logic_vector(unsigned(csr_regs_32(CSR_LQ_FULL)) + 1);
+                    end if;
+                    
+                    if (perfcntr_sq_full = '1') then
+                        csr_regs_32(CSR_SQ_FULL) <= std_logic_vector(unsigned(csr_regs_32(CSR_SQ_FULL)) + 1);
+                    end if;
+                end if;
             end if;         
         end if;
     end process;
@@ -134,6 +178,14 @@ begin
                 when X"C08" => if (CSR_PERF_CNTR_DMEM = true) then read_data <= csr_regs_32(CSR_DCACHE_MISS); else read_data <= (others => '0'); end if;           --  DCACHE MISSES
                 
                 when X"C09" => if (CSR_PERF_CNTR_IMEM = true) then read_data <= csr_regs_32(CSR_ICACHE_STALL); else read_data <= (others => '0'); end if;           --  ICACHE STALL CYCLES
+                
+                when X"C0A" => if (CSR_PERF_CNTR_EE = true) then read_data <= csr_regs_32(CSR_ISSUE_STALL_CYC); else read_data <= (others => '0'); end if;           
+                when X"C0B" => if (CSR_PERF_CNTR_EE = true) then read_data <= csr_regs_32(CSR_FIFO_FULL); else read_data <= (others => '0'); end if;       
+                when X"C0C" => if (CSR_PERF_CNTR_EE = true) then read_data <= csr_regs_32(CSR_RAA_EMPTY); else read_data <= (others => '0'); end if;       
+                when X"C0D" => if (CSR_PERF_CNTR_EE = true) then read_data <= csr_regs_32(CSR_ROB_FULL); else read_data <= (others => '0'); end if;          
+                when X"C0E" => if (CSR_PERF_CNTR_EE = true) then read_data <= csr_regs_32(CSR_SCHED_FULL); else read_data <= (others => '0'); end if;       
+                when X"C0F" => if (CSR_PERF_CNTR_EE = true) then read_data <= csr_regs_32(CSR_LQ_FULL); else read_data <= (others => '0'); end if;    
+                when X"C10" => if (CSR_PERF_CNTR_EE = true) then read_data <= csr_regs_32(CSR_SQ_FULL); else read_data <= (others => '0'); end if;       
                 
                 when X"C80" => read_data <= csr_regs_64(CSR_CYCLES)(63 downto 32);           -- RDCYCLE
                 when X"C81" => read_data <= csr_regs_64(CSR_CYCLES)(63 downto 32);           -- RDTIME

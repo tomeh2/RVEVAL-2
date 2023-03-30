@@ -70,6 +70,8 @@ entity execution_engine is
         perfcntr_bc_empty : in std_logic;
         perfcntr_icache_stall : in std_logic;
         
+        perfcntr_fifo_full : in std_logic;
+        
         perf_commit_ready : out std_logic;
         
         reset : in std_logic;
@@ -78,10 +80,6 @@ entity execution_engine is
 end execution_engine;
 
 architecture Structural of execution_engine is
-    signal debug_reg_1_paddr : std_logic_vector(integer(ceil(log2(real(PHYS_REGFILE_ENTRIES)))) - 1 downto 0);
-    signal debug_reg_2_paddr : std_logic_vector(integer(ceil(log2(real(PHYS_REGFILE_ENTRIES)))) - 1 downto 0);
-    signal debug_reg_3_paddr : std_logic_vector(integer(ceil(log2(real(PHYS_REGFILE_ENTRIES)))) - 1 downto 0);
-    signal debug_reg_4_paddr : std_logic_vector(integer(ceil(log2(real(PHYS_REGFILE_ENTRIES)))) - 1 downto 0);
     -- ========== PIPELINE REGISTERS ==========
     -- The second _x (where x is a number) indicates what scheduler output port the pipeline register is attached to. This allows us to control the pipeline
     -- registers of each scheduler output port independently.
@@ -506,6 +504,14 @@ begin
                             
                             dcache_access => (dcache_write_valid and dcache_write_ready) or (dcache_read_valid and dcache_read_ready),
                             dcache_miss => dcache_write_miss or dcache_read_miss,
+                            
+                            perfcntr_issue_stall_cycles => stall_issue,
+                            perfcntr_fifo_full => perfcntr_fifo_full,
+                            perfcntr_raa_empty => raa_empty,
+                            perfcntr_rob_full => rob_full,
+                            perfcntr_sched_full => sched_full,
+                            perfcntr_lq_full => lq_full,
+                            perfcntr_sq_full => sq_full,
                             
                             instr_ret => perf_commit_ready,
                             

@@ -68,7 +68,9 @@ begin
     pipeline_proc : process(clk)
     begin
         if (rising_edge(clk)) then
-            if (stall = '0') then
+            if (reset = '1') then
+                branch_tag_pipeline_reg <= (others => '0');
+            elsif (stall = '0') then
                 branch_tag_pipeline_reg <= pc(BTB_TAG_BITS + INDEX_BITS + 1 downto INDEX_BITS + 2);
             end if;
         end if;
@@ -79,17 +81,18 @@ begin
         if (rising_edge(clk)) then
             if (reset = '1') then
                 btb_valid_bits <= (others => '0');
-            end if;
+                btb_read_valid <= '0';
+            else
+                if (stall = '0') then
+                    btb_read_entry <= btb(to_integer(unsigned(pc(INDEX_BITS + 1 downto 2))));
+                    btb_read_valid <= btb_valid_bits(to_integer(unsigned(pc(INDEX_BITS + 1 downto 2))));
+                end if;
             
-            if (stall = '0') then
-                btb_read_entry <= btb(to_integer(unsigned(pc(INDEX_BITS + 1 downto 2))));
-                btb_read_valid <= btb_valid_bits(to_integer(unsigned(pc(INDEX_BITS + 1 downto 2))));
-            end if;
-            
-            if (write_en = '1') then
-                btb(to_integer(unsigned(branch_write_addr(INDEX_BITS + 1 downto 2)))) <= 
-                    branch_write_addr(BTB_TAG_BITS + INDEX_BITS + 1 downto INDEX_BITS + 2) & branch_write_target_addr;
-                    btb_valid_bits(to_integer(unsigned(branch_write_addr(INDEX_BITS + 1 downto 2)))) <= '1';
+                if (write_en = '1') then
+                    btb(to_integer(unsigned(branch_write_addr(INDEX_BITS + 1 downto 2)))) <= 
+                        branch_write_addr(BTB_TAG_BITS + INDEX_BITS + 1 downto INDEX_BITS + 2) & branch_write_target_addr;
+                        btb_valid_bits(to_integer(unsigned(branch_write_addr(INDEX_BITS + 1 downto 2)))) <= '1';
+                end if;
             end if;
         end if;
     end process;

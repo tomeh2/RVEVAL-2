@@ -163,22 +163,12 @@ begin
                 
                 if (instruction(3) = '1') then  -- JAL
                     uop_is_jal <= '1';
-                else
+                else                            -- JALR
                     uop_is_jalr <= '1';
                 end if;
-                --uop_is_jal <= '1';
                 uop_uses_pc <= '1';
                 uop_is_speculative_branch <= '1';
-                --uop_negate_branch_cond <= '1';
 
---            when OPCODE_JALR =>
---                uop.operation_type <= OPTYPE_BRANCH;        -- This instruction gets treated like a conditional branch by the Exec. Engine, but as a branch that is always taken
---                uop.operation_select(2 downto 0) <= "000";  -- No conditional branch has this alu op sel value so it can be used to identify this as a JALR instruction
-                
---                uop_is_jalr <= '1';
---                uop_uses_pc <= '1';
---                uop_is_speculative_branch <= '1';
-            
             when OPCODE_SYSTEM =>
                 uop.operation_type <= (others => '0');
                 uop.operation_select <= (others => '0');

@@ -71,8 +71,9 @@ package pkg_cpu is
     
     constant CSR_PERF_COUNTERS_EN : boolean := true;
     constant CSR_PERF_CNTR_BRANCHES : boolean := true;
-    constant CSR_PERF_CNTR_DMEM : boolean := false;
+    constant CSR_PERF_CNTR_DMEM : boolean := true;
     constant CSR_PERF_CNTR_IMEM : boolean := true;
+    constant CSR_PERF_CNTR_EE : boolean := true;
     
     constant ENABLE_EARLY_MISPREDICT_DETECTION : boolean := false; 
 

@@ -168,6 +168,7 @@ begin
                                 perfcntr_br_targ_mispred => perfcntr_br_targ_mispred,
                                 perfcntr_bc_empty => perfcntr_bc_empty,
                                 perfcntr_icache_stall => perfcntr_icache_stall,
+                                perfcntr_fifo_full => fifo_full,
                                    
                                 next_uop => uop_ee_in,
                                 clk => clk,
