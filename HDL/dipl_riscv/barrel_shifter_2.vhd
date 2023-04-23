@@ -41,7 +41,7 @@ entity barrel_shifter_2 is
 end barrel_shifter_2;
 
 architecture rtl of barrel_shifter_2 is
-    type intermediate_results_type is array (integer(ceil(log2(real(DATA_WIDTH)))) - 1 downto 0) of std_logic_vector(DATA_WIDTH - 1 downto 0);
+    type intermediate_results_type is array (4 downto 0) of std_logic_vector(DATA_WIDTH - 1 downto 0);
     
     signal intermediate_results : intermediate_results_type;
 begin

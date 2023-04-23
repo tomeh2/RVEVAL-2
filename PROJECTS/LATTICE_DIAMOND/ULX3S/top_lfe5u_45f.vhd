@@ -18,9 +18,9 @@ architecture rtl of top_lfe5u_45f is
 begin
 	clk_gen : entity work.pll_1(Structure)
 			  port map(CLKI => clk_25mhz,
-						CLKOP => open,			-- 50 MHz
+						CLKOP => clk,			-- 50 MHz
 						CLKOS => open,			-- 60 MHz
-						CLKOS2 => clk,			-- 75 MHz
+						CLKOS2 => open,			-- 75 MHz
 						LOCK => clk_locked);
 
     soc_inst : entity work.soc(rtl)
