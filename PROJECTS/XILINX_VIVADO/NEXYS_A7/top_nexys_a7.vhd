@@ -8,6 +8,16 @@ entity top_nexys_a7 is
         
         LED : out std_logic_vector(15 downto 0);
         
+        CA : out std_logic;
+        CB : out std_logic;
+        CC : out std_logic;
+        CD : out std_logic;
+        CE : out std_logic;
+        CF : out std_logic;
+        CG : out std_logic;
+        DP : out std_logic;
+        AN : out std_logic_vector(7 downto 0);
+        
         UART_TXD_IN : in std_logic;
         UART_RXD_OUT : out std_logic
     );
@@ -44,6 +54,16 @@ begin
                         gpio_i => (others => '0'),
                         gpio_o(7 downto 0) => LED(7 downto 0),
                         gpio_o(31 downto 8) => open,
+                        
+                        anodes => AN,
+                        cathodes(0) => CA,
+                        cathodes(1) => CB,
+                        cathodes(2) => CC,
+                        cathodes(3) => CD,
+                        cathodes(4) => CE,
+                        cathodes(5) => CF,
+                        cathodes(6) => CG,
+                        cathodes(7) => DP,
                         
                         uart_tx => UART_RXD_OUT,
                         uart_rx => UART_TXD_IN);

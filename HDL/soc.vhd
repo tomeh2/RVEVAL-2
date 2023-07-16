@@ -17,6 +17,9 @@ library neorv32;
 
 entity soc is
     port(
+        anodes : out std_logic_vector(7 downto 0);
+        cathodes : out std_logic_vector(7 downto 0);
+        
         gpio_o : out std_logic_vector(31 downto 0);
         gpio_i : in std_logic_vector(31 downto 0);
     
@@ -227,6 +230,9 @@ architecture rtl of soc is
     signal wb_gpio_rdata : std_logic_vector(31 downto 0);
     signal wb_gpio_cyc : std_logic;
     signal wb_gpio_ack : std_logic;
+    
+    signal wb_sevseg_cyc : std_logic;
+    signal wb_sevseg_ack : std_logic;
 begin
     neo_gen : if (CPU_NAME = "NEORV") generate
         neorv32_inst: entity neorv32.neorv32_top(neorv32_top_rtl)
@@ -466,9 +472,9 @@ begin
     harvard_gen : if (CPU_NAME = "SERV" or CPU_NAME = "MYRISC") generate
         interconnect_inst : entity work.wb_interconnect_bus(rtl)
                             generic map(DECODER_ADDR_WIDTH => 24,
-                                        NUM_SLAVES => 4,
+                                        NUM_SLAVES => 5,
                                         NUM_MASTERS => 2,
-                                        BASE_ADDRS => (X"FFFFFB", X"8-----", X"0-----", X"FFFFFF"))
+                                        BASE_ADDRS => (X"FFFFFB", X"8-----", X"0-----", X"FFFFFF", X"FFFFFA"))
                             port map(wb_master_rdata => wb_dcpu_rdata,
                                      wb_master_wdata(31 downto 0) => wb_dcpu_wdata,
                                      wb_master_wdata(63 downto 32) => (others => '0'),
@@ -486,6 +492,7 @@ begin
                                      wb_slave_rdata(63 downto 32) => wb_ram_rdata,
                                      wb_slave_rdata(95 downto 64) => wb_rom_rdata,
                                      wb_slave_rdata(127 downto 96) => wb_gpio_rdata,
+                                     wb_slave_rdata(159 downto 128) => (others => '0'),
                                      wb_slave_wdata => wb_wdata,
                                      wb_slave_addr => wb_addr,
                                      wb_slave_wstrb => wb_wstrb,
@@ -495,10 +502,12 @@ begin
                                      wb_slave_cyc(1) => wb_ram_cyc,
                                      wb_slave_cyc(2) => wb_rom_cyc,
                                      wb_slave_cyc(3) => wb_gpio_cyc,
+                                     wb_slave_cyc(4) => wb_sevseg_cyc,
                                      wb_slave_ack(0) => wb_uart_ack,
                                      wb_slave_ack(1) => wb_ram_ack,
                                      wb_slave_ack(2) => wb_rom_ack,
                                      wb_slave_ack(3) => wb_gpio_ack,
+                                     wb_slave_ack(4) => wb_sevseg_ack,
                                      
                                      reset => reset,
                                      clk => clk);
@@ -565,6 +574,22 @@ begin
                              
                              clk => clk,
                              reset => reset);
+                             
+    sev_seg_instance : entity work.sevseg_interface
+                        generic map(REFRESH_RATE => SEVSEG_REFRESH_RATE,
+                                    REFRESH_CLK_FREQ => CLOCK_FREQ_MHZ * 1000000)
+                        port map(anodes => anodes,
+                                 cathodes => cathodes,
+                                 
+                                 bus_wdata => wb_wdata,
+                                 bus_addr => wb_addr,
+                                 bus_stbw => wb_wstrb,
+                                 bus_cyc => wb_sevseg_cyc,
+                                 bus_ack => wb_sevseg_ack,
+                                 
+                                 clk_bus => clk,
+                                 clk_ref => clk,
+                                 reset => reset);
 
 end rtl;
 

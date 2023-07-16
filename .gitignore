@@ -8,6 +8,7 @@
 
 #Verilog and VHDL files
 !*.v
+!*.sv
 !*.vhd
 
 #Constraint files
@@ -33,5 +34,8 @@
 !*clk_gen/pll_1/pll_1.vhd
 
 
-#Bootloader
-!PROG/loader.hex
+#Software
+!*.hex
+!*.srec
+
+#

@@ -192,7 +192,7 @@ begin
                 uop.operation_type <= (others => '0');
                 uop.operation_select <= (others => '0');
                 
-                report "Illegal instruction! PC = " & to_hstring(pc) & " | Instruction = " & to_hstring(instruction) severity failure;
+                --report "Illegal instruction! PC = " & to_hstring(pc) & " | Instruction = " & to_hstring(instruction) severity failure;
         end case;   
     end process;
     

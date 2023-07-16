@@ -5,8 +5,9 @@ use IEEE.NUMERIC_STD.ALL;
 package config is
     constant CLOCK_FREQ_MHZ : integer := 50;
     --constant UART_BAUD_RATE : integer := 921600;
-    constant UART_BAUD_RATE : integer := 115200;
-    --constant UART_BAUD_RATE : integer := 5000000;
+    --constant UART_BAUD_RATE : integer := 115200;
+    constant UART_BAUD_RATE : integer := 1000000;
+    constant SEVSEG_REFRESH_RATE : integer := 60;
     constant STACK_ADDR : std_logic_vector(31 downto 0) := X"8001_0000";
     constant RESET_PC : std_logic_vector(31 downto 0) := X"0000_0000";
     constant BOOTLOADER_PATH : string := "../PROG/loader_cache_aware.hex";
@@ -16,7 +17,7 @@ package config is
     constant CPU_NAME : string := "MYRISC";
     constant ENABLE_BUS_ILA_XILINX : boolean := true;
     
-    constant RAM_KB : integer := 512;
+    constant RAM_KB : integer := 64;
     
     type wb_data_type is array (natural range <>) of std_logic_vector(31 downto 0);
     subtype wb_addr_type is std_logic_vector(31 downto 0);
