@@ -6,6 +6,10 @@ entity top_nexys_a7 is
         CLK100MHZ : in std_logic;
         CPU_RESETN : in std_logic;
         
+        M_CLK : out std_logic;
+        M_DATA : in std_logic;
+        M_LRSEL : out std_logic;
+        
         LED : out std_logic_vector(15 downto 0);
         
         CA : out std_logic;
@@ -29,27 +33,46 @@ architecture rtl of top_nexys_a7 is
          (-- Clock in ports
           -- Clock out ports
           clk_out1          : out    std_logic;
+          clk_out2          : out    std_logic;
           -- Status and control signals
           locked            : out    std_logic;
           clk_in1           : in     std_logic
          );
     end component;
     
-    signal clk, clk_locked : std_logic;
+    signal clk, clk_locked, clk_pdm, clk_pdm_div_2 : std_logic;
 begin
     clk_wiz : clk_wiz_0
        port map ( 
       -- Clock out ports  
        clk_out1 => clk,
+       clk_out2 => clk_pdm,
       -- Status and control signals                
        locked => clk_locked,
        -- Clock in ports
        clk_in1 => CLK100MHZ
        );
+       
+    process(clk_pdm)
+    begin
+        if (rising_edge(clk_pdm)) then
+            if ((not CPU_RESETN and clk_locked) = '1') then
+                clk_pdm_div_2 <= '0';
+            else
+                clk_pdm_div_2 <= not clk_pdm_div_2;
+            end if;
+        end if;   
+    end process;
+    
+    M_CLK <= clk_pdm_div_2;
+    M_LRSEL <= '0';
 
     soc_inst : entity work.soc(rtl)
                port map(clk => clk,
+                        clk_pdm => clk_pdm,
                         reset => not CPU_RESETN and clk_locked,
+                        
+                        pdm_input => M_DATA,
                         
                         gpio_i => (others => '0'),
                         gpio_o(7 downto 0) => LED(7 downto 0),

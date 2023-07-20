@@ -25,8 +25,11 @@ entity soc is
     
         uart_tx : out std_logic;
         uart_rx : in std_logic;
+        
+        pdm_input : in std_logic;
     
         clk : in std_logic;
+        clk_pdm : in std_logic;
         reset : in std_logic
     );
 end soc;
@@ -233,6 +236,10 @@ architecture rtl of soc is
     
     signal wb_sevseg_cyc : std_logic;
     signal wb_sevseg_ack : std_logic;
+    
+    signal wb_audio_rdata : std_logic_vector(31 downto 0);
+    signal wb_audio_cyc : std_logic;
+    signal wb_audio_ack : std_logic;
 begin
     neo_gen : if (CPU_NAME = "NEORV") generate
         neorv32_inst: entity neorv32.neorv32_top(neorv32_top_rtl)
@@ -472,9 +479,9 @@ begin
     harvard_gen : if (CPU_NAME = "SERV" or CPU_NAME = "MYRISC") generate
         interconnect_inst : entity work.wb_interconnect_bus(rtl)
                             generic map(DECODER_ADDR_WIDTH => 24,
-                                        NUM_SLAVES => 5,
+                                        NUM_SLAVES => 6,
                                         NUM_MASTERS => 2,
-                                        BASE_ADDRS => (X"FFFFFB", X"8-----", X"0-----", X"FFFFFF", X"FFFFFA"))
+                                        BASE_ADDRS => (X"FFFFFB", X"8-----", X"0-----", X"FFFFFF", X"FFFFFA", X"FFFFFC"))
                             port map(wb_master_rdata => wb_dcpu_rdata,
                                      wb_master_wdata(31 downto 0) => wb_dcpu_wdata,
                                      wb_master_wdata(63 downto 32) => (others => '0'),
@@ -493,6 +500,7 @@ begin
                                      wb_slave_rdata(95 downto 64) => wb_rom_rdata,
                                      wb_slave_rdata(127 downto 96) => wb_gpio_rdata,
                                      wb_slave_rdata(159 downto 128) => (others => '0'),
+                                     wb_slave_rdata(191 downto 160) => wb_audio_rdata,
                                      wb_slave_wdata => wb_wdata,
                                      wb_slave_addr => wb_addr,
                                      wb_slave_wstrb => wb_wstrb,
@@ -503,11 +511,13 @@ begin
                                      wb_slave_cyc(2) => wb_rom_cyc,
                                      wb_slave_cyc(3) => wb_gpio_cyc,
                                      wb_slave_cyc(4) => wb_sevseg_cyc,
+                                     wb_slave_cyc(5) => wb_audio_cyc,
                                      wb_slave_ack(0) => wb_uart_ack,
                                      wb_slave_ack(1) => wb_ram_ack,
                                      wb_slave_ack(2) => wb_rom_ack,
                                      wb_slave_ack(3) => wb_gpio_ack,
                                      wb_slave_ack(4) => wb_sevseg_ack,
+                                     wb_slave_ack(5) => wb_audio_ack,
                                      
                                      reset => reset,
                                      clk => clk);
@@ -590,6 +600,19 @@ begin
                                  clk_bus => clk,
                                  clk_ref => clk,
                                  reset => reset);
+                                 
+    audio_intf_instance : entity work.audio_interface
+                          port map(pdm_input => pdm_input,
+                          
+                                   bus_wdata => wb_wdata,
+                                   bus_rdata => wb_audio_rdata,
+                                   bus_stbw => wb_wstrb,
+                                   bus_cyc => wb_audio_cyc,
+                                   bus_ack => wb_audio_ack,
+                                     
+                                   clk_bus => clk,
+                                   clk_pdm => clk_pdm,
+                                   reset => reset);
 
 end rtl;
 
