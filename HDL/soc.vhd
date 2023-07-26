@@ -604,6 +604,7 @@ begin
     audio_intf_instance : entity work.audio_interface
                           port map(pdm_input => pdm_input,
                           
+                                   bus_addr => wb_addr,
                                    bus_wdata => wb_wdata,
                                    bus_rdata => wb_audio_rdata,
                                    bus_stbw => wb_wstrb,

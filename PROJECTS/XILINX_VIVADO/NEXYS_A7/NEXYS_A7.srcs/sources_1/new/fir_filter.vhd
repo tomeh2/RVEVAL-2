@@ -5,6 +5,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity fir_filter is
     generic(
         BITS_PER_SAMPLE : integer;
+        BITS_FRACTION : integer;
         ORDER : integer
     );
     port(
@@ -17,34 +18,164 @@ entity fir_filter is
 end fir_filter;
 
 architecture rtl of fir_filter is
-    type delay_regs_type is array (ORDER downto 0) of signed(BITS_PER_SAMPLE - 1 downto 0);
+    type delay_regs_type is array (ORDER - 1 downto 0) of signed(BITS_PER_SAMPLE - 1 downto 0);
     signal delay_regs : delay_regs_type;
     
+-- 2000 Hz Blackman LPF
     type coeff_regs_type is array (ORDER downto 0) of signed(BITS_PER_SAMPLE - 1 downto 0);
-    signal coeff_regs : coeff_regs_type;
+    signal coeff_regs : coeff_regs_type := (
+X"0000",
+X"0000",
+X"0000",
+X"0000",
+X"0000",
+X"0001",
+X"0001",
+X"0001",
+X"0001",
+X"0001",
+X"0000",
+X"FFFE",
+X"FFFA",
+X"FFF6",
+X"FFF0",
+X"FFEA",
+X"FFE5",
+X"FFE2",
+X"FFE2",
+X"FFE6",
+X"FFF0",
+X"0000",
+X"0019",
+X"0039",
+X"005F",
+X"008B",
+X"00BA",
+X"00E9",
+X"0115",
+X"013C",
+X"015A",
+X"016D",
+X"0173",
+X"016D",
+X"015A",
+X"013C",
+X"0115",
+X"00E9",
+X"00BA",
+X"008B",
+X"005F",
+X"0039",
+X"0019",
+X"0000",
+X"FFF0",
+X"FFE6",
+X"FFE2",
+X"FFE2",
+X"FFE5",
+X"FFEA",
+X"FFF0",
+X"FFF6",
+X"FFFA",
+X"FFFE",
+X"0000",
+X"0001",
+X"0001",
+X"0001",
+X"0001",
+X"0001",
+X"0000",
+X"0000",
+X"0000",
+X"0000",
+X"0000");
+
+-- 700 HZ Blackman LPF
+--    signal coeff_regs : coeff_regs_type := (
+--X"0000",
+--X"0000",
+--X"0000",
+--X"0000",
+--X"0000",
+--X"0000",
+--X"0000",
+--X"0001",
+--X"0002",
+--X"0003",
+--X"0005",
+--X"0007",
+--X"000A",
+--X"000D",
+--X"0011",
+--X"0016",
+--X"001B",
+--X"0021",
+--X"0028",
+--X"0030",
+--X"0038",
+--X"0040",
+--X"0049",
+--X"0051",
+--X"005A",
+--X"0062",
+--X"006A",
+--X"0070",
+--X"0076",
+--X"007B",
+--X"007F",
+--X"0081",
+--X"0082",
+--X"0081",
+--X"007F",
+--X"007B",
+--X"0076",
+--X"0070",
+--X"006A",
+--X"0062",
+--X"005A",
+--X"0051",
+--X"0049",
+--X"0040",
+--X"0038",
+--X"0030",
+--X"0028",
+--X"0021",
+--X"001B",
+--X"0016",
+--X"0011",
+--X"000D",
+--X"000A",
+--X"0007",
+--X"0005",
+--X"0003",
+--X"0002",
+--X"0001",
+--X"0000",
+--X"0000",
+--X"0000",
+--X"0000",
+--X"0000",
+--X"0000",
+--X"0000");
     
-    type intermediate_results_type is array (ORDER downto 0) of signed(BITS_PER_SAMPLE * 2 - 1 downto 0);
+    type intermediate_results_type is array (ORDER downto 0) of signed(BITS_PER_SAMPLE - 1 downto 0);
     signal intermediate_results : intermediate_results_type;
     
     type after_mult_temp_type is array (ORDER downto 0) of signed(BITS_PER_SAMPLE * 2 - 1 downto 0);
     signal after_mult_temp : after_mult_temp_type;
     
-    type after_shift_temp_type is array (ORDER downto 0) of signed(BITS_PER_SAMPLE * 2 - 1 downto 0);
+    type after_shift_temp_type is array (ORDER downto 0) of signed(BITS_PER_SAMPLE - 1 downto 0);
     signal after_shift_temp : after_shift_temp_type;
 begin
     process(clk)
     begin
         if (rising_edge(clk)) then
             if (reset = '1') then
-                coeff_regs(0) <= X"00FE";
-                coeff_regs(1) <= X"0074";
-                coeff_regs(2) <= X"0010";
-                coeff_regs(3) <= X"00C3";
-                coeff_regs(4) <= X"00A6";
+
             else
-                delay_regs(0) <= input_signal;
-                for i in 1 to ORDER loop
-                    delay_regs(i) <= delay_regs(i - 1);
+                delay_regs(ORDER - 1) <= after_shift_temp(ORDER);
+                for i in 0 to ORDER - 1 loop
+                    delay_regs(i) <= intermediate_results(i + 1);
                 end loop;
             end if;
         end if;
@@ -52,25 +183,16 @@ begin
     
     process(all)
     begin
-        after_mult_temp(0) <= delay_regs(0) * coeff_regs(0);
-        
-        after_shift_temp(0)(BITS_PER_SAMPLE / 2 - 1 downto 0) <= after_mult_temp(0)(BITS_PER_SAMPLE - 1 downto BITS_PER_SAMPLE / 2);
-        after_shift_temp(0)(BITS_PER_SAMPLE * 2 - 1 downto BITS_PER_SAMPLE * 3 / 2) <= (others => '0');
-        after_shift_temp(0)(BITS_PER_SAMPLE * 3 / 2 - 1 downto BITS_PER_SAMPLE / 2) <= after_mult_temp(0)(BITS_PER_SAMPLE * 2 - 1 downto BITS_PER_SAMPLE);
-        for i in 1 to ORDER loop
-            after_mult_temp(i) <= delay_regs(i) * coeff_regs(i);
+        for i in 0 to ORDER loop
+            after_mult_temp(i) <= input_signal * coeff_regs(i);
+            after_shift_temp(i) <= after_mult_temp(i)(BITS_FRACTION + BITS_PER_SAMPLE - 1 downto BITS_FRACTION);
             
-            after_shift_temp(i)(BITS_PER_SAMPLE / 2 - 1 downto 0) <= after_mult_temp(i)(BITS_PER_SAMPLE - 1 downto BITS_PER_SAMPLE / 2);
-            after_shift_temp(i)(BITS_PER_SAMPLE * 2 - 1 downto BITS_PER_SAMPLE * 3 / 2) <= (others => '0');
-            after_shift_temp(i)(BITS_PER_SAMPLE * 3 / 2 - 1 downto BITS_PER_SAMPLE / 2) <= after_mult_temp(i)(BITS_PER_SAMPLE * 2 - 1 downto BITS_PER_SAMPLE);
-        end loop;
-        
-        intermediate_results(0) <= after_shift_temp(0);
-        for i in 1 to ORDER loop
-            intermediate_results(i) <= after_shift_temp(i) + intermediate_results(i - 1);
+            if (i < ORDER) then
+                intermediate_results(i) <= after_shift_temp(i) + delay_regs(i);
+            else
+                intermediate_results(i) <= after_shift_temp(i);
+            end if;
         end loop;
     end process;
-    
-    output_signal <= intermediate_results(ORDER - 1)(BITS_PER_SAMPLE - 1 downto 0);
-
+    output_signal <= intermediate_results(0);
 end rtl;

@@ -2,11 +2,14 @@ module top_sim(
 
     );
     
-    logic clk, reset, uart_tx, uart_rx;
+    logic clk, clk_pdm, reset, uart_tx, uart_rx, pdm_in;
     logic[31:0] gpio_o;
     
     soc uut(.clk(clk),
+            .clk_pdm(clk_pdm),
             .reset(reset),
+            
+            .pdm_input(pdm_in),
             
             .gpio_i(0),
             .gpio_o(gpio_o),
@@ -15,6 +18,14 @@ module top_sim(
             .uart_rx(uart_rx));
             
     assign #10ns clk = ~clk;        // 50 MHz
+    
+    always @(posedge clk) begin
+        clk_pdm <= ~clk_pdm;
+    end 
+    
+    always @(posedge clk_pdm) begin
+        pdm_in <= ~pdm_in;
+    end 
     
     task uart_send(logic[7:0] data);
         uart_rx = 0;
@@ -67,5 +78,11 @@ module top_sim(
             $fread(data, fd);
             uart_send(data);
         end 
+    end initial;
+    
+    initial
+    begin
+        clk_pdm <= 0;
+        pdm_in <= 0;
     end initial;
 endmodule

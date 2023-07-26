@@ -8,7 +8,8 @@ module fir_filter_tb(
     logic clk, reset;
     
     fir_filter #(.BITS_PER_SAMPLE(16),
-                     .ORDER(4))
+                 .BITS_FRACTION(12),
+                     .ORDER(64))
                uut (.input_signal(in),
                     .output_signal(out),
                     
@@ -26,9 +27,9 @@ module fir_filter_tb(
         #20ns;
         reset <= 0;
         
-        #1us;
-        in <= 16'h0100;
-        #200ns;
+        #5us;
+        in <= 16'h1000;
+        #20ns;
         in <= 0;
     end initial;
 endmodule
