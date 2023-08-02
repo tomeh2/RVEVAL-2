@@ -29,7 +29,7 @@ module fir_filter_tb(
         
         #5us;
         in <= 16'h1000;
-        #20ns;
+        #2000ns;
         in <= 0;
     end initial;
 endmodule

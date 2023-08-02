@@ -20,12 +20,12 @@ entity audio_interface is
 end audio_interface;
 
 architecture rtl of audio_interface is
-    signal pcm_sample : std_logic_vector(15 downto 0);
+    signal pcm_sample, pcm_sample_2, pdm_sample_3 : std_logic_vector(15 downto 0);
     
     signal sample_rate_divider_counter_reg : unsigned(7 downto 0);
     signal sample_rate_divisor : unsigned(7 downto 0) := X"7F";
    
-    signal fifo_wr_en, i_bus_ready, fifo_empty : std_logic;
+    signal cic_dec_valid, fifo_wr_en, i_bus_ready, fifo_empty : std_logic;
     
     COMPONENT fifo_generator_0
   PORT (
@@ -42,42 +42,49 @@ architecture rtl of audio_interface is
 END COMPONENT;
 
 begin
-    
-    fir_filter_instance : entity work.fir_filter
+    cic_decimator : entity work.cic_decimator
                           generic map(BITS_PER_SAMPLE => 16,
-                                      BITS_FRACTION => 12,
-                                      ORDER => 64)
-                          port map(input_signal(12) => pdm_input,
-                                   input_signal(11 downto 0) => (others => '0'),
-                                   input_signal(15 downto 13) => (others => '0'),
-                                   std_logic_vector(output_signal) => pcm_sample,
+                                      DELAY => 1,
+                                      ORDER => 4,
+                                      DECIMATION_FACTOR => 4)
+                          port map(signal_in(0) => pdm_input,
+                                   signal_in(15 downto 1) => (others => '0'),
+                                   --signal_in(15 downto 9) => (others => '0'),
+                                   std_logic_vector(signal_out) => pcm_sample,
+                                   signal_out_valid => cic_dec_valid,
                                    
                                    clk => clk_pdm,
                                    reset => reset);
-      
-    process(clk_pdm)
-    begin
-        if (rising_edge(clk_pdm)) then
-            if (reset = '1') then
-                sample_rate_divider_counter_reg <= (others => '0');
-            else
-                if (sample_rate_divider_counter_reg = sample_rate_divisor) then
-                    sample_rate_divider_counter_reg <= (others => '0');
-                else
-                    sample_rate_divider_counter_reg <= sample_rate_divider_counter_reg + 1;
-                end if;
-            end if;
-        end if;
-    end process;
-    
-    fifo_wr_en <= '1' when sample_rate_divider_counter_reg = sample_rate_divisor else '0';
                                    
+    fir_filter_inst : entity work.fir_filter
+                      generic map(BITS_PER_SAMPLE => 16,
+                                  BITS_FRACTION => 8,
+                                  ORDER => 61)
+                      port map(signal_in(7 DOWNTO 0) => signed(pcm_sample(7 downto 0)),
+                              signal_in(15 downto 8) => (others => '0'),
+                               signal_in_valid => cic_dec_valid,
+                               std_logic_vector(signal_out) => pcm_sample_2,
+                               
+                               clk => clk_pdm,
+                               reset => reset);
+                               
+    decimator_inst : entity work.decimator
+                     generic map(BITS_PER_SAMPLE => 16,
+                                 DECIMATION_FACTOR => 16)
+                     port map(signal_in => pcm_sample_2,
+                              signal_in_valid => cic_dec_valid,
+                              signal_out => pdm_sample_3,
+                              signal_out_valid => fifo_wr_en,
+                              
+                              clk => clk_pdm,
+                              reset => reset);
+
     your_instance_name : fifo_generator_0
       PORT MAP (
         rst => reset,
         wr_clk => clk_pdm,
         rd_clk => clk_bus,
-        din(15 downto 0) => pcm_sample,
+        din(15 downto 0) => pcm_sample_2,
         wr_en => fifo_wr_en,
         rd_en => bus_ack,
         dout => bus_rdata(15 downto 0),
