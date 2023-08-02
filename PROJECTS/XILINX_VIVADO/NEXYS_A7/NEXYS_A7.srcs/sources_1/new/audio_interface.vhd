@@ -20,12 +20,12 @@ entity audio_interface is
 end audio_interface;
 
 architecture rtl of audio_interface is
-    signal pcm_sample, pcm_sample_2, pdm_sample_3 : std_logic_vector(15 downto 0);
+    signal pcm_sample, pcm_sample_2, pcm_sample_3, pcm_sample_4, pcm_sample_5 : std_logic_vector(15 downto 0);
     
     signal sample_rate_divider_counter_reg : unsigned(7 downto 0);
     signal sample_rate_divisor : unsigned(7 downto 0) := X"7F";
    
-    signal cic_dec_valid, fifo_wr_en, i_bus_ready, fifo_empty : std_logic;
+    signal cic_dec_valid, fir_1_valid, fifo_wr_en, i_bus_ready, fifo_empty : std_logic;
     
     COMPONENT fifo_generator_0
   PORT (
@@ -46,7 +46,7 @@ begin
                           generic map(BITS_PER_SAMPLE => 16,
                                       DELAY => 1,
                                       ORDER => 4,
-                                      DECIMATION_FACTOR => 4)
+                                      DECIMATION_FACTOR => 8)
                           port map(signal_in(0) => pdm_input,
                                    signal_in(15 downto 1) => (others => '0'),
                                    --signal_in(15 downto 9) => (others => '0'),
@@ -55,13 +55,24 @@ begin
                                    
                                    clk => clk_pdm,
                                    reset => reset);
-                                   
+    
     fir_filter_inst : entity work.fir_filter
                       generic map(BITS_PER_SAMPLE => 16,
-                                  BITS_FRACTION => 8,
-                                  ORDER => 61)
-                      port map(signal_in(7 DOWNTO 0) => signed(pcm_sample(7 downto 0)),
-                              signal_in(15 downto 8) => (others => '0'),
+                                  BITS_FRACTION => 12,
+                                  ORDER => 61,
+                                  COEFFS => (
+X"FFEB",
+X"FF79",
+X"0053",
+X"0487",
+X"0784",
+X"0487",
+X"0053",
+X"FF79",
+X"FFEB",
+others => (others => '0')))
+                      port map(signal_in(12 DOWNTO 0) => signed(pcm_sample(12 downto 0)),
+                              signal_in(15 downto 13) => (others => '0'),
                                signal_in_valid => cic_dec_valid,
                                std_logic_vector(signal_out) => pcm_sample_2,
                                
@@ -70,10 +81,97 @@ begin
                                
     decimator_inst : entity work.decimator
                      generic map(BITS_PER_SAMPLE => 16,
-                                 DECIMATION_FACTOR => 16)
+                                 DECIMATION_FACTOR => 2)
                      port map(signal_in => pcm_sample_2,
                               signal_in_valid => cic_dec_valid,
-                              signal_out => pdm_sample_3,
+                              signal_out => pcm_sample_3,
+                              signal_out_valid => fir_1_valid,
+                              
+                              clk => clk_pdm,
+                              reset => reset);
+     
+    fir_filter_inst_2 : entity work.fir_filter
+                      generic map(BITS_PER_SAMPLE => 16,
+                                  BITS_FRACTION => 12,
+                                  ORDER => 61,
+                                  COEFFS => (
+X"0009",
+X"0011",
+X"001F",
+X"0032",
+X"0047",
+X"005B",
+X"006A",
+X"006F",
+X"0062",
+X"003E",
+X"FFFF",
+X"FFA0",
+X"FF26",
+X"FE97",
+X"FDFF",
+X"FD70",
+X"FCFE",
+X"FCC1",
+X"FCD2",
+X"FD43",
+X"FE24",
+X"FF7B",
+X"0141",
+X"0368",
+X"05D4",
+X"0861",
+X"0AE3",
+X"0D2C",
+X"0F11",
+X"106C",
+X"1120",
+X"1120",
+X"106C",
+X"0F11",
+X"0D2C",
+X"0AE3",
+X"0861",
+X"05D4",
+X"0368",
+X"0141",
+X"FF7B",
+X"FE24",
+X"FD43",
+X"FCD2",
+X"FCC1",
+X"FCFE",
+X"FD70",
+X"FDFF",
+X"FE97",
+X"FF26",
+X"FFA0",
+X"FFFF",
+X"003E",
+X"0062",
+X"006F",
+X"006A",
+X"005B",
+X"0047",
+X"0032",
+X"001F",
+X"0011",
+X"0009",
+others => (others => '0')))
+                      port map(signal_in(12 DOWNTO 0) => signed(pcm_sample_3(12 downto 0)),
+                              signal_in(15 downto 13) => (others => '0'),
+                               signal_in_valid => fir_1_valid,
+                               std_logic_vector(signal_out) => pcm_sample_4,
+                               
+                               clk => clk_pdm,
+                               reset => reset);
+                               
+    decimator_inst_2 : entity work.decimator
+                     generic map(BITS_PER_SAMPLE => 16,
+                                 DECIMATION_FACTOR => 4)
+                     port map(signal_in => pcm_sample_4,
+                              signal_in_valid => fir_1_valid,
+                              signal_out => pcm_sample_5,
                               signal_out_valid => fifo_wr_en,
                               
                               clk => clk_pdm,
@@ -84,7 +182,7 @@ begin
         rst => reset,
         wr_clk => clk_pdm,
         rd_clk => clk_bus,
-        din(15 downto 0) => pcm_sample_2,
+        din(15 downto 0) => pcm_sample_5,
         wr_en => fifo_wr_en,
         rd_en => bus_ack,
         dout => bus_rdata(15 downto 0),
