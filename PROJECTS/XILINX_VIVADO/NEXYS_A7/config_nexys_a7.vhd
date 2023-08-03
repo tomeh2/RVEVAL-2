@@ -3,9 +3,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 package config is
-    constant CLOCK_FREQ_MHZ : integer := 50;
+    constant CLOCK_FREQ_MHZ : integer := 100;
     --constant UART_BAUD_RATE : integer := 921600;
-    constant UART_BAUD_RATE : integer := 921600;
+    constant UART_BAUD_RATE : integer := 2000000;
     --constant UART_BAUD_RATE : integer := 1000000;
     constant SEVSEG_REFRESH_RATE : integer := 60;
     constant STACK_ADDR : std_logic_vector(31 downto 0) := X"8001_0000";

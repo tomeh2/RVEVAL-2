@@ -37,7 +37,7 @@ begin
         end if;
     end process;
     signal_out <= signal_in;
-    decimation_sample_valid <= '1' when decimation_counter_reg = DECIMATION_FACTOR - 1 else '0';
+    decimation_sample_valid <= '1' when decimation_counter_reg = DECIMATION_FACTOR - 1 and signal_in_valid = '1' else '0';
     signal_out_valid <= decimation_sample_valid;
 
 end rtl;
