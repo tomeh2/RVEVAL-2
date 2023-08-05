@@ -41,8 +41,19 @@ architecture rtl of audio_interface is
     empty : OUT STD_LOGIC
   );
 END COMPONENT;
-
+    signal clk_pdm_div_2 : std_logic;
 begin
+    process(clk_pdm)
+    begin
+        if (rising_edge(clk_pdm)) then
+            if (reset = '1') then
+                clk_pdm_div_2 <= '0';
+            else
+                clk_pdm_div_2 <= not clk_pdm_div_2;
+            end if;
+        end if;   
+    end process;
+
     cic_decimator_8 : entity work.cic_decimator
                           generic map(BITS_PER_SAMPLE => 16,
                                       DELAY => 1,
@@ -51,6 +62,7 @@ begin
                           port map(signal_in(0) => pdm_input,
                                    signal_in(15 downto 1) => (others => '0'),
                                    --signal_in(1 downto 0) => (others => '0'),
+                                   signal_in_en => clk_pdm_div_2,
                                    std_logic_vector(signal_out) => pcm_samples_intermediates(0),
                                    signal_out_valid => pcm_sample_valid_intermediates(0),
                                    

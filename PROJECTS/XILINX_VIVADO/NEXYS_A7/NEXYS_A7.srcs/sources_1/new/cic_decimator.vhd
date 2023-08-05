@@ -11,6 +11,7 @@ entity cic_decimator is
     );
     port(
         signal_in : in std_logic_vector(BITS_PER_SAMPLE - 1 downto 0);
+        signal_in_en : in std_logic;
         signal_out : out std_logic_vector(BITS_PER_SAMPLE - 1 downto 0);
         signal_out_valid : out std_logic;
         
@@ -38,7 +39,7 @@ begin
         if (rising_edge(clk)) then
             if (reset = '1') then
                 decimation_counter_reg <= to_unsigned(0, 8);
-            else
+            elsif (signal_in_en = '1') then
                 if (decimation_counter_reg = DECIMATION_FACTOR - 1) then
                     decimation_counter_reg <= to_unsigned(0, 8);
                 else
@@ -47,7 +48,7 @@ begin
             end if;
         end if;
     end process;
-    decimation_sample_valid <= '1' when decimation_counter_reg = DECIMATION_FACTOR - 1 else '0';
+    decimation_sample_valid <= '1' when decimation_counter_reg = DECIMATION_FACTOR - 1 and signal_in_en = '1' else '0';
     signal_out_valid <= decimation_sample_valid;
     
     -- INTEGRATORS
@@ -56,7 +57,7 @@ begin
         if (rising_edge(clk)) then
             if (reset = '1') then
                 integrator_regs <= (others => to_signed(0, BITS_PER_SAMPLE));             
-            else
+            elsif (signal_in_en = '1') then
                 for i in 0 to ORDER - 1 loop
                     integrator_regs(i) <= intermediate_results(i + 1);
                 end loop;
@@ -75,7 +76,7 @@ begin
         if (rising_edge(clk)) then
             if (reset = '1') then
                 comb_regs <= (others => (others => to_signed(0, BITS_PER_SAMPLE)));
-            else
+            elsif (signal_in_en = '1') then
                 if (decimation_sample_valid = '1') then
                     for i in 0 to ORDER - 1 loop
                         comb_regs(i)(0) <= intermediate_results(i + ORDER);
