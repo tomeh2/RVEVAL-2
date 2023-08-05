@@ -37,5 +37,7 @@
 #Software
 !*.hex
 !*.srec
+!*.c
+!*.py
 
 #
