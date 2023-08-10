@@ -54,7 +54,6 @@ architecture rtl of branch_controller is
     
     signal bc_masks : bc_masks_type;
     signal bc_dependent_masks : bc_dependent_masks_type;
-    signal bc_available_bits : std_logic_vector(BRANCHING_DEPTH - 1 downto 0);
     
     -- Contains a 1 at every bit that has been allocated and not yet deallocated
     signal outstanding_branches_mask_i : std_logic_vector(BRANCHING_DEPTH - 1 downto 0);
