@@ -47,7 +47,6 @@ architecture rtl of rom_memory is
     
     signal rom : rom_type := init_rom_hex;
 
-    signal we : std_logic;
     signal bus_ready_i : std_logic;
 begin
     ram_cntrl : process(clk)

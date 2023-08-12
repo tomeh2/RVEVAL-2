@@ -129,7 +129,6 @@ architecture Structural of execution_engine is
     signal freed_reg_addr : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
     
     signal raa_get_en : std_logic;
-    signal raa_put_tag : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
     signal raa_put_en : std_logic;
     
     signal raa_empty : std_logic;
@@ -224,14 +223,10 @@ architecture Structural of execution_engine is
     
     signal i_branch_mispredict_detected : std_logic;
     
-    signal eu_input_0 : eu_input_type;
-    signal eu_input_1 : eu_input_type;
-    
     signal sched_op_1_ready : std_logic;
     signal sched_op_2_ready : std_logic;
     -- =======================================
-    
-    signal p1_p2_speculated_branches_mask : std_logic_vector(BRANCHING_DEPTH - 1 downto 0);
+
     signal csr_read_val : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     signal debug_rat : debug_rat_type;
 begin
@@ -250,12 +245,12 @@ begin
     begin
         if (rising_edge(clk)) then
             if (reset = '1') then
-                pipeline_reg_2_0.valid <= '0';
-                pipeline_reg_2_1.valid <= '0';
-                pipeline_reg_3_0.valid <= '0';
-                pipeline_reg_3_1.valid <= '0';
-                pipeline_reg_4_0.valid <= '0';
-                pipeline_reg_4_1.valid <= '0';
+                pipeline_reg_2_0 <= EE_PIPELINE_REG_2_0_RESET;
+                pipeline_reg_2_1 <= EE_PIPELINE_REG_2_1_RESET;
+                pipeline_reg_3_0 <= EE_PIPELINE_REG_3_0_RESET;
+                pipeline_reg_3_1 <= EE_PIPELINE_REG_3_1_RESET;
+                pipeline_reg_4_0 <= EE_PIPELINE_REG_4_0_RESET;
+                pipeline_reg_4_1 <= EE_PIPELINE_REG_4_1_RESET;
             else
                 if (pipeline_reg_2_0_we = '1') then
                     pipeline_reg_2_0 <= pipeline_reg_2_0_next;
@@ -351,8 +346,6 @@ begin
     -- ========================================================================================
                    
     next_uop_full.pc <= next_uop.pc;
-    next_uop_full.phys_dest_reg_addr <= rf_phys_dest_reg_addr;
-    next_uop_full.stq_tag <= sq_alloc_tag;
     next_uop_full.branch_mask <= next_uop.branch_mask;
     next_uop_full.operation_type <= next_uop.operation_type;
     next_uop_full.operation_select <= next_uop.operation_select;

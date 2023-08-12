@@ -67,12 +67,6 @@ architecture structural of core is
     signal branch_predicted_pc : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
     signal branch_prediction : std_logic;
     
-    signal ee_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
-    signal ee_data_read : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
-    signal ee_data_write : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
-    signal ee_is_write : std_logic;
-    signal ee_req_valid : std_logic;
-    
     signal dcache_read_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
     signal dcache_read_data : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     signal dcache_read_valid : std_logic;
@@ -191,7 +185,6 @@ begin
                                read_data_out_1 => dcache_read_data,
                                read_hit_1 => dcache_read_hit,
                                read_miss_1 => dcache_read_miss,
-                               read_miss_tag_1 => open,
                                
                                write_addr_1 => dcache_write_addr,
                                write_data_1 => dcache_write_data,
@@ -202,7 +195,6 @@ begin
                                write_ready_1 => dcache_write_ready,
                                write_hit_1 => dcache_write_hit,
                                write_miss_1 => dcache_write_miss,
-                               write_miss_tag_1 => open,
                                
                                loaded_cacheline_tag => dcache_loaded_cacheline_tag,
                                loaded_cacheline_tag_valid => dcache_loaded_cacheline_tag_valid,

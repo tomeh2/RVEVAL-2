@@ -98,6 +98,7 @@ begin
             is_any_master_active := '0';
             
             for i in 0 to NUM_MASTERS - 1 loop
+                selected_master_next <= 0;
                 if (wb_master_cyc(i) = '1') then
                     is_any_master_active := '1';
                     selected_master_next <= i;

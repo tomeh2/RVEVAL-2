@@ -184,7 +184,6 @@ architecture rtl of load_store_unit_cache is
     signal sq_finished_tag_valid : std_logic;
     
     signal sq_store_ready : std_logic;
-    signal lq_ready_loads : std_logic_vector(LQ_ENTRIES - 1 downto 0);
     signal lq_load_ready : std_logic;
     --signal lq_selected_index : std_logic_vector(LOAD_QUEUE_TAG_BITS - 1 downto 0);
     
@@ -223,13 +222,6 @@ architecture rtl of load_store_unit_cache is
     signal load_state_reg : load_state_type;
     signal load_state_next : load_state_type;
 begin
---    lq_select_ready_prioenc : entity work.priority_encoder(rtl)
---                              generic map(NUM_INPUTS => LQ_ENTRIES,
---                                          HIGHER_INPUT_HIGHER_PRIO => false)
---                              port map(d => lq_ready_loads,
---                                       q => lq_selected_index,
---                                       valid => lq_load_ready);
-
     -- STATE MACHINES
     store_state_reg_proc : process(clk)
     begin
@@ -468,17 +460,6 @@ begin
         end if;
     end process;
     
---    load_ready_proc : process(load_queue)
---    begin
---        for i in 0 to LQ_ENTRIES - 1 loop
---            if (load_queue(i)(LQ_STQ_MASK_START downto LQ_STQ_MASK_END) = LQ_STQ_MASK_ZERO and load_queue(i)(LQ_ADDR_VALID) = '1' and load_queue(i)(LQ_VALID_BIT) = '1') then
---                lq_ready_loads(i) <= '1';
---            else
---                lq_ready_loads(i) <= '0';
---            end if;
---        end loop;
---    end process;
-
     queue_counters_proc : process(clk)
     begin
         if (rising_edge(clk)) then
@@ -623,6 +604,7 @@ begin
     cdb_out.instr_tag <= load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_INSTR_TAG_START downto LQ_INSTR_TAG_END);
     cdb_out.branch_mask <= (others => '0');
     cdb_out.branch_mispredicted <= '0';
+    cdb_out.is_jal <= '0';
     cdb_out.is_jalr <= '0';
     cdb_out.branch_taken <= '0';
     

@@ -54,11 +54,9 @@ entity dcache is
         
         read_hit_1 : out std_logic;
         read_miss_1 : out std_logic;
-        read_miss_tag_1 : out std_logic_vector(LOAD_QUEUE_TAG_BITS - 1 downto 0);
         
         write_hit_1 : out std_logic;
         write_miss_1 : out std_logic;
-        write_miss_tag_1 : out std_logic_vector(STORE_QUEUE_TAG_BITS - 1 downto 0);
         
         loaded_cacheline_tag : out std_logic_vector(DCACHE_TAG_SIZE - 1 downto 0);
         loaded_cacheline_tag_valid : out std_logic;
@@ -88,8 +86,6 @@ architecture rtl of dcache is
     
     signal c1_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
     
-    signal c3_data : std_logic_vector(DCACHE_CACHELINE_SIZE - 1 downto 0);
-
     signal i_read_ready_1 : std_logic;
     signal i_write_ready_1 : std_logic;
     
@@ -147,6 +143,7 @@ begin
                                write_size_1 => write_size_1,
                                valid_1 => i_read_ready_1 or i_write_ready_1, 
                                
+                               clear_pipeline_reg_0 => '0',
                                clear_pipeline => '0',
                                stall => '0',
                                stall_o => i_stall,

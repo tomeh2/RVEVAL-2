@@ -35,7 +35,6 @@ architecture rtl of ram_memory is
 
     signal ram : ram_type;
 
-    signal we : std_logic;
     signal bus_ready_i : std_logic;
 begin
     ram_cntrl : process(clk)

@@ -60,12 +60,12 @@ package pkg_cpu is
     
     constant ICACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant ICACHE_INSTR_PER_CACHELINE : integer := 4;
-    constant ICACHE_NUM_SETS : integer := 128;                     -- MUST BE POWER OF 2!
+    constant ICACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
     --constant ICACHE_REPLACEMENT_POLICY : string := "FIFO";                -- In consideration
     
     constant DCACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant DCACHE_ENTRIES_PER_CACHELINE : integer := 4;
-    constant DCACHE_NUM_SETS : integer := 128;                     -- MUST BE POWER OF 2!
+    constant DCACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
     constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"FFFF_0000";
     --constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"8000_0000";
     
@@ -315,6 +315,22 @@ package pkg_cpu is
                                      (others => '0'),
                                      (others => '0'),
                                      '0');
+                                     
+    constant EU_INPUT_ZERO : eu_input_type := ((others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     (others => '0'),
+                                     '0');
     
     function branch_mask_to_int(branch_mask : in std_logic_vector(BRANCHING_DEPTH - 1 downto 0)) return integer;
     
@@ -326,7 +342,7 @@ package pkg_cpu is
     type f2_f3_pipeline_reg_type is record
         pc : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
         branch_pred_target : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
-        branch_pred_outcome : std_logic;
+        pred_is_branch : std_logic;
         valid : std_logic;
     end record;
     

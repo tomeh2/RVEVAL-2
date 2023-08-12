@@ -67,4 +67,28 @@ package pkg_ee is
         eu_input : eu_input_type;
         valid : std_logic;
     end record;
+    
+    constant EE_PIPELINE_REG_2_0_RESET : execution_engine_pipeline_register_2_0_type := 
+                                           ((others => (others => '0')),
+                                           '0');
+                                           
+    constant EE_PIPELINE_REG_2_1_RESET : execution_engine_pipeline_register_2_1_type := 
+                                           ((others => (others => '0')),
+                                           '0');
+                                           
+    constant EE_PIPELINE_REG_3_0_RESET : execution_engine_pipeline_register_3_0_type := 
+                                           ((others => (others => '0')),
+                                           '0');
+                                           
+    constant EE_PIPELINE_REG_3_1_RESET : execution_engine_pipeline_register_3_1_type := 
+                                           ((others => (others => '0')),
+                                           '0');
+                                           
+    constant EE_PIPELINE_REG_4_0_RESET : execution_engine_pipeline_register_4_0_type := 
+                                           (EU_INPUT_ZERO,
+                                           '0');
+                                           
+    constant EE_PIPELINE_REG_4_1_RESET : execution_engine_pipeline_register_4_1_type := 
+                                           (EU_INPUT_ZERO,
+                                           '0');
 end package;

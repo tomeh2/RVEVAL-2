@@ -36,7 +36,7 @@ entity sevseg_interface is
         cathodes : out std_logic_vector(7 downto 0);
     
         bus_wdata : in std_logic_vector(31 downto 0);
-        bus_addr : in std_logic_vector(31 downto 0);
+        bus_addr : in std_logic_vector(2 downto 0);
         bus_stbw : in std_logic_vector(3 downto 0);
         bus_ack : out std_logic;
         bus_cyc : in std_logic;

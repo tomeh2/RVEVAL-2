@@ -592,7 +592,7 @@ begin
                                  cathodes => cathodes,
                                  
                                  bus_wdata => wb_wdata,
-                                 bus_addr => wb_addr,
+                                 bus_addr => wb_addr(2 downto 0),
                                  bus_stbw => wb_wstrb,
                                  bus_cyc => wb_sevseg_cyc,
                                  bus_ack => wb_sevseg_ack,

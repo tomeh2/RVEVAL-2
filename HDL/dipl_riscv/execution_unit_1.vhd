@@ -89,11 +89,11 @@ begin
     lsu_generated_address <= pipeline_reg_0.generated_address;
     lsu_generated_data <= pipeline_reg_0.generated_data;
     lsu_generated_data_tag <= pipeline_reg_0.generated_data_tag;
-    lsu_generated_data_valid <= pipeline_reg_0.generated_data_valid;
+    lsu_generated_data_valid <= pipeline_reg_0.generated_data_valid and pipeline_reg_0.valid;
     lsu_stq_tag <= pipeline_reg_0.stq_tag;
-    lsu_stq_tag_valid <= pipeline_reg_0.stq_tag_valid;
+    lsu_stq_tag_valid <= pipeline_reg_0.stq_tag_valid and pipeline_reg_0.valid;
     lsu_ldq_tag <= pipeline_reg_0.ldq_tag;
-    lsu_ldq_tag_valid <= pipeline_reg_0.ldq_tag_valid;
+    lsu_ldq_tag_valid <= pipeline_reg_0.ldq_tag_valid and pipeline_reg_0.valid;
 
     ready <= '1';       -- Always ready
 

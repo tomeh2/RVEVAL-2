@@ -114,7 +114,9 @@ architecture Structural of front_end is
     
     signal f2_pred_target_pc : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
     signal f2_pred_is_branch : std_logic;
-    signal f2_pred_outcome : std_logic;
+    
+    -- F3 STAGE
+    signal f3_pred_outcome : std_logic;
 
     -- D1 STAGE
     signal d1_pc : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
@@ -150,7 +152,7 @@ begin
                 f2_f3_pipeline_reg.valid <= '0';
                 f3_d1_pipeline_reg.valid <= '0';
             else
-                if (flush_pipeline or d1_branch_target_mispredict) then
+                if (flush_pipeline or d1_branch_target_mispredict or f3_pred_outcome) then
                     f1_f2_pipeline_reg.valid <= '0';
                 elsif (stall_f1_f3 = '0') then
                     f1_f2_pipeline_reg <= f1_f2_pipeline_reg_next;
@@ -175,14 +177,14 @@ begin
     
     f2_f3_pipeline_reg_next.pc <= f1_f2_pipeline_reg.pc;
     f2_f3_pipeline_reg_next.branch_pred_target <= f2_pred_target_pc;
-    f2_f3_pipeline_reg_next.branch_pred_outcome <= f2_pred_outcome;
+    f2_f3_pipeline_reg_next.pred_is_branch <= f2_pred_is_branch;
     
     f3_d1_pipeline_reg_next.pc <= f2_f3_pipeline_reg.pc;
-    f3_d1_pipeline_reg_next.branch_pred_outcome <= f2_f3_pipeline_reg.branch_pred_outcome;
+    f3_d1_pipeline_reg_next.branch_pred_outcome <= f3_pred_outcome;
     f3_d1_pipeline_reg_next.branch_pred_target <= f2_f3_pipeline_reg.branch_pred_target;
     
     f1_f2_pipeline_reg_next.valid <= '1';
-    f2_f3_pipeline_reg_next.valid <= f1_f2_pipeline_reg.valid;
+    f2_f3_pipeline_reg_next.valid <= f1_f2_pipeline_reg.valid and not f3_pred_outcome;
     f3_d1_pipeline_reg_next.valid <= '0' when stall_f1_f3 or d1_branch_target_mispredict else f2_f3_pipeline_reg.valid;
     
     stall_f3_d1 <= d1_bc_empty or fifo_full;
@@ -233,22 +235,22 @@ begin
                     f1_pc_reg <= cdb.target_addr;--debug_cdb_targ_addr;
                 elsif (d1_branch_target_mispredict = '1') then
                     f1_pc_reg <= d1_target_mispred_recovery_pc;
-                elsif (f2_pred_outcome = '1' and f1_f2_pipeline_reg.valid = '1') then
-                    f1_pc_reg <= std_logic_vector(unsigned(f2_pred_target_pc) + 4);
+                elsif (f3_pred_outcome = '1') then
+                    f1_pc_reg <= f2_f3_pipeline_reg.branch_pred_target;
                 elsif (stall_f1_f3 = '0') then
                     f1_pc_reg <= std_logic_vector(unsigned(f1_pc_reg) + 4);
                 end if;
             end if;
         end if;
     end process;
-    f1_pc <= f2_pred_target_pc when f2_pred_outcome = '1' and d1_branch_target_mispredict = '0' and cdb_branch_mispredicted = '0' and f1_f2_pipeline_reg.valid = '1' else f1_pc_reg;
+    f1_pc <= f1_pc_reg;
     
-    bp_in.fetch_addr <= f1_pc;
+    bp_in.fetch_addr <= f1_f2_pipeline_reg.pc;
     bp_in.put_addr <= cdb.pc_low_bits;
     bp_in.put_outcome <= (cdb.branch_taken or cdb.is_jal);
     bp_in.put_en <= cdb_branch;
     
-    f2_pred_outcome <= bp_out.predicted_outcome and f2_pred_is_branch;
+    f3_pred_outcome <= bp_out.predicted_outcome and f2_f3_pipeline_reg.pred_is_branch and f2_f3_pipeline_reg.valid;
     -- ==============================================================
     
     -- ========================== F2 STAGE ==========================
@@ -256,6 +258,7 @@ begin
                   port map(read_addr => f1_pc,
                            read_en => '1',
                            read_cancel => flush_pipeline or d1_branch_target_mispredict,
+                           read_cancel_1 => f3_pred_outcome,
                            stall => stall_f1_f3,
                            
                            fetching => ic_wait,
@@ -271,8 +274,6 @@ begin
                            
                            clk => clk,
                            reset => reset); 
-    
-    f3_d1_pipeline_reg_next.pc <= f2_f3_pipeline_reg.pc;
     -- ==============================================================
     
     -- ========================== D1 STAGE ==========================

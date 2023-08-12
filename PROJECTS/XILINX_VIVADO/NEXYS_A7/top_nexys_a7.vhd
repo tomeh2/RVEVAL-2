@@ -40,7 +40,7 @@ architecture rtl of top_nexys_a7 is
          );
     end component;
     
-    signal clk, clk_locked, clk_pdm, clk_pdm_div_2 : std_logic;
+    signal clk, clk_locked, clk_pdm, clk_pdm_div_2, i_reset : std_logic;
 begin
     clk_wiz : clk_wiz_0
        port map ( 

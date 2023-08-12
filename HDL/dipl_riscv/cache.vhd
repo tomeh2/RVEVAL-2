@@ -70,6 +70,7 @@ entity cache is
         write_size_1 : in std_logic_vector(1 downto 0);                       -- 00: Byte | 01: Half-word | 10: Word
         valid_1 : in std_logic;
                              
+        clear_pipeline_reg_0 : in std_logic;
         clear_pipeline : in std_logic;       
         stall : in std_logic;
         stall_o : out std_logic;
@@ -121,7 +122,6 @@ architecture rtl of cache is
     signal hit_bits : std_logic_vector(ASSOCIATIVITY - 1 downto 0);          -- Only one bit can be active at a time
     signal i_stall : std_logic;
     signal i_hit : std_logic;
-    signal i_bus_addr_read : std_logic_vector(ADDR_SIZE_BITS - 1 downto 0);
     signal i_write_set_select : std_logic_vector(ASSOCIATIVITY - 1 downto 0);
     signal i_cacheline_late_fwd_en : std_logic;
     signal i_set_full : std_logic;
@@ -136,7 +136,6 @@ architecture rtl of cache is
     signal cacheline_update : std_logic_vector(CACHELINE_SIZE - 1 downto 0);
     signal cacheline_write : std_logic_vector(CACHELINE_SIZE - 1 downto 0);
     signal cacheline_update_en : std_logic;
-    signal cacheline_update_sel : std_logic_vector(ASSOCIATIVITY - 1 downto 0);
     signal cacheline_evict_en : std_logic;
     signal cacheline_evict_write_en : std_logic;
     signal cacheline_addr_aligned : std_logic_vector(ADDR_SIZE_BITS - 1 downto 0);
@@ -322,6 +321,7 @@ begin
         cacheline_evict_en <= '0';
         addr_write_cache <= cbc_writeback_addr(RADDR_INDEX_START downto RADDR_INDEX_END);
         i_write_set_select <= cbc_writeback_write_mask;
+        cacheline_update <= (others => 'U');
         cacheline_update_en <= cbc_writeback_en;
         cacheline_write <= '0' & cbc_writeback_addr(RADDR_TAG_START downto RADDR_TAG_END) & cbc_writeback_cacheline;
     end generate;
@@ -404,12 +404,16 @@ begin
                 c2_c3_pipeline_reg_1.valid <= '0';
                 c2_c3_pipeline_reg_1.set_full <= '0';
             else
-                if (clear_pipeline = '1') then
+                if (clear_pipeline_reg_0 or clear_pipeline) then
                     c1_c2_pipeline_reg_1.valid <= '0';
-                    c2_c3_pipeline_reg_1.valid <= '0';
                 elsif (i_stall = '0') then
                     c1_c2_pipeline_reg_1.valid <= valid_1;
-                    c2_c3_pipeline_reg_1.valid <= c1_c2_pipeline_reg_1.valid;
+                end if;
+            
+                if (clear_pipeline = '1') then
+                    c2_c3_pipeline_reg_1.valid <= '0';
+                elsif (i_stall = '0') then
+                    c2_c3_pipeline_reg_1.valid <= c1_c2_pipeline_reg_1.valid and not clear_pipeline_reg_0;
                 end if;
                 
                 if (i_stall = '0') then

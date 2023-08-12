@@ -82,6 +82,7 @@ begin
             if (reset = '1') then
                 btb_valid_bits <= (others => '0');
                 btb_read_valid <= '0';
+                btb_read_entry <= (others => '0');
             else
                 if (stall = '0') then
                     btb_read_entry <= btb(to_integer(unsigned(pc(INDEX_BITS + 1 downto 2))));

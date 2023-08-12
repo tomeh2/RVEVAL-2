@@ -64,8 +64,6 @@ architecture rtl of unified_scheduler is
         uop : uop_exec_type;
         operand_1_ready : std_logic;
         operand_2_ready : std_logic;
-        operand_1_dispatched : std_logic;
-        operand_2_dispatched : std_logic;
         valid : std_logic;
     end record;
 
