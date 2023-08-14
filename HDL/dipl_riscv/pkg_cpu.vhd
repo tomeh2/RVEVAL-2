@@ -70,10 +70,10 @@ package pkg_cpu is
     --constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"8000_0000";
     
     constant CSR_PERF_COUNTERS_EN : boolean := true;
-    constant CSR_PERF_CNTR_BRANCHES : boolean := true;
-    constant CSR_PERF_CNTR_DMEM : boolean := true;
-    constant CSR_PERF_CNTR_IMEM : boolean := true;
-    constant CSR_PERF_CNTR_EE : boolean := true;
+    constant CSR_PERF_CNTR_BRANCHES : boolean := false;
+    constant CSR_PERF_CNTR_DMEM : boolean := false;
+    constant CSR_PERF_CNTR_IMEM : boolean := false;
+    constant CSR_PERF_CNTR_EE : boolean := false;
     
     constant ENABLE_EARLY_MISPREDICT_DETECTION : boolean := false; 
 

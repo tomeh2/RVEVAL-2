@@ -35,6 +35,7 @@ entity register_alias_table is
         PHYS_REGFILE_ENTRIES : integer range 1 to 1024;
         ARCH_REGFILE_ENTRIES : integer range 1 to 1024;
         
+        ZERO_CYCLE_DELAY : boolean;
         VALID_BIT_INIT_VAL : std_logic;
         ENABLE_VALID_BITS : boolean
     );
@@ -48,6 +49,7 @@ entity register_alias_table is
         -- Inputs take the architectural register address for which we want the physical entry address
         arch_reg_addr_read_1 : in std_logic_vector(integer(ceil(log2(real(ARCH_REGFILE_ENTRIES)))) - 1 downto 0);
         arch_reg_addr_read_2 : in std_logic_vector(integer(ceil(log2(real(ARCH_REGFILE_ENTRIES)))) - 1 downto 0);
+        read_en : in std_logic;
         
         -- Outputs give the physical entry address
         phys_reg_addr_read_1 : out std_logic_vector(integer(ceil(log2(real(PHYS_REGFILE_ENTRIES)))) - 1 downto 0);
@@ -99,6 +101,8 @@ begin
                     rat_mispredict_recovery_memory(i) <= RAT_TYPE_ZERO;
                 end loop;
             else
+                
+            
                 if (write_en = '1' and arch_reg_addr_write_1 /= ARCH_REGFILE_ADDR_ZERO) then
                     rat(to_integer(unsigned(arch_reg_addr_write_1))) <= phys_reg_addr_write_1;
                 end if;
@@ -114,8 +118,23 @@ begin
         end if;
     end process;
     
-    phys_reg_addr_read_1 <= rat(to_integer(unsigned(arch_reg_addr_read_1)));
-    phys_reg_addr_read_2 <= rat(to_integer(unsigned(arch_reg_addr_read_2)));
+    gen_zcd : if (ZERO_CYCLE_DELAY = true) generate
+        process(all)
+        begin
+            phys_reg_addr_read_1 <= rat(to_integer(unsigned(arch_reg_addr_read_1)));
+            phys_reg_addr_read_2 <= rat(to_integer(unsigned(arch_reg_addr_read_2)));    
+        end process;
+    else generate
+        process(clk)
+        begin
+            if (rising_edge(clk)) then
+                if (read_en = '1') then
+                    phys_reg_addr_read_1 <= rat(to_integer(unsigned(arch_reg_addr_read_1)));
+                    phys_reg_addr_read_2 <= rat(to_integer(unsigned(arch_reg_addr_read_2)));
+                end if;
+            end if;
+        end process;
+    end generate;
     
     rat_debug_gen : if (ENABLE_ARCH_REGFILE_MONITORING = true) generate
         process(all)

@@ -43,6 +43,8 @@ entity register_file is
     port(
         debug_rat : in debug_rat_type;
         
+        cdb : in cdb_type;
+        
         -- Address busses
         rd_1_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
         rd_2_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
@@ -134,10 +136,26 @@ begin
         end if;
     end process;
     
-    rf_write_en <= '1' when en = '1' and wr_addr /= REG_ADDR_ZERO else '0';
+    process(all)
+    begin
+        if ((cdb.phys_dest_reg = reg_1_valid_bit_addr) and cdb.valid = '1') then
+            reg_1_valid <= '1';
+       --elsif (reg_1_valid_bit_addr = alloc_reg_addr and alloc_reg_addr_v = '1' and alloc_reg_addr /= PHYS_REG_TAG_ZERO) then
+        --   reg_1_valid <= '0';
+        else
+            reg_1_valid <= reg_file_valid_bits(to_integer(unsigned(reg_1_valid_bit_addr)));
+        end if;
+                
+        if ((cdb.phys_dest_reg = reg_2_valid_bit_addr) and cdb.valid = '1') then
+            reg_2_valid <= '1';
+        --elsif (reg_2_valid_bit_addr = alloc_reg_addr and alloc_reg_addr_v = '1' and alloc_reg_addr /= PHYS_REG_TAG_ZERO) then
+        --    reg_2_valid <= '0';
+        else
+             reg_2_valid <= reg_file_valid_bits(to_integer(unsigned(reg_2_valid_bit_addr)));
+        end if;
+    end process;
     
-    reg_1_valid <= reg_file_valid_bits(to_integer(unsigned(reg_1_valid_bit_addr)));
-    reg_2_valid <= reg_file_valid_bits(to_integer(unsigned(reg_2_valid_bit_addr)));
+    rf_write_en <= '1' when en = '1' and wr_addr /= REG_ADDR_ZERO else '0';
     
     regfile_debug_gen : if (ENABLE_ARCH_REGFILE_MONITORING = true) generate
         process(all)

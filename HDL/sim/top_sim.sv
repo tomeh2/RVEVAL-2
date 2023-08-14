@@ -31,19 +31,19 @@ module top_sim(
         uart_rx = 0;
         //#1us;
         //#85ns;
-        #1000ns;
+        #500ns;
         for (int i = 0; i < 8; i++)
         begin
             uart_rx = data[i];
             //#1us;
             //#85ns;
-            #1000ns;
+            #500ns;
         end 
         uart_rx = 1;
         
         //#1us;
         //#85ns;
-        #1000ns;
+        #500ns;
     endtask;
     
     initial begin
@@ -59,7 +59,7 @@ module top_sim(
     initial
     begin
         int fd;
-        fd = $fopen("D:/Programs/cygwin64/home/Tomi/github/f32c/src/examples/sevseg/sevseg.srec", "rb");
+        fd = $fopen("D:/Programs/cygwin64/home/Tomi/github/f32c/src/examples/hello_c/hello.srec", "rb");
         if (!fd)
             $display("Could not open file!");
         else

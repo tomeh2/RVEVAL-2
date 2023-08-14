@@ -32,9 +32,27 @@ use WORK.PKG_CPU.ALL;
 
 package pkg_ee is
     type execution_engine_pipeline_register_1_type is record
-        uop : uop_exec_type;
-        operand_1_ready : std_logic;
-        operand_2_ready : std_logic;
+        pc : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        
+        operation_type : std_logic_vector(OPERATION_TYPE_BITS - 1 downto 0);
+        operation_select : std_logic_vector(OPERATION_SELECT_BITS - 1 downto 0);
+        csr : std_logic_vector(11 downto 0);
+        immediate : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
+        
+        arch_src_reg_1_addr : std_logic_vector(ARCH_REGFILE_ADDR_BITS - 1 downto 0);
+        arch_src_reg_2_addr : std_logic_vector(ARCH_REGFILE_ADDR_BITS - 1 downto 0);
+        arch_dest_reg_addr : std_logic_vector(ARCH_REGFILE_ADDR_BITS - 1 downto 0);
+
+        phys_dest_reg_addr : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
+        
+        instr_tag : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
+        stq_tag : std_logic_vector(STORE_QUEUE_TAG_BITS - 1 downto 0);
+        ldq_tag : std_logic_vector(LOAD_QUEUE_TAG_BITS - 1 downto 0);
+        
+        branch_mask : std_logic_vector(BRANCHING_DEPTH - 1 downto 0);
+        speculated_branches_mask : std_logic_vector(BRANCHING_DEPTH - 1 downto 0);
+        branch_predicted_outcome : std_logic;
+      
         valid : std_logic;
     end record;
     
