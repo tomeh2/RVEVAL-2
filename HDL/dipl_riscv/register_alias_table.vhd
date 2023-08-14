@@ -108,8 +108,8 @@ begin
                 end if;
                 
                 -- Speculation
-                if (cdb.branch_mispredicted = '1' and cdb.valid = '1') then
-                    rat <= rat_mispredict_recovery_memory(branch_mask_to_int(cdb.branch_mask));
+                if (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') then
+                    rat <= rat_mispredict_recovery_memory(branch_mask_to_int(cdb.cdb_branch.branch_mask));
                 elsif (next_instr_branch_mask /= BRANCH_MASK_ZERO and next_uop_valid = '1') then
                     rat_mispredict_recovery_memory(branch_mask_to_int(next_instr_branch_mask)) <= rat;
                     rat_mispredict_recovery_memory(branch_mask_to_int(next_instr_branch_mask))(to_integer(unsigned(arch_reg_addr_write_1))) <= phys_reg_addr_write_1;

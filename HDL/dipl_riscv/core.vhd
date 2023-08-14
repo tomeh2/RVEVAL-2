@@ -121,7 +121,7 @@ begin
       PORT MAP (
         cdb => cdb,
         clk => clk,
-        reset => reset or (cdb.branch_mispredicted and cdb.valid),
+        reset => reset or (cdb.cdb_branch.branch_mispredicted and cdb.cdb_branch.valid),
         uop_in => uop_fe_out,
         wr_en => instruction_ready,
         rd_en => fifo_read_en,

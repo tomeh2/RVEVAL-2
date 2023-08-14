@@ -85,15 +85,15 @@ begin
                     outstanding_branches_mask_i(to_integer(unsigned(allocated_mask_index))) <= '1';
                 end if;
                 
-                if (cdb.branch_mask /= BRANCH_MASK_ZERO and cdb.branch_mispredicted = '0' and cdb.valid = '1') then        -- CORRECTLY PREDICTED
-                    outstanding_branches_mask_i(branch_mask_to_int(cdb.branch_mask)) <= '0';
+                if (cdb.cdb_branch.branch_mask /= BRANCH_MASK_ZERO and cdb.cdb_branch.branch_mispredicted = '0' and cdb.cdb_branch.valid = '1') then        -- CORRECTLY PREDICTED
+                    outstanding_branches_mask_i(branch_mask_to_int(cdb.cdb_branch.branch_mask)) <= '0';
                     
                     for i in 0 to BRANCHING_DEPTH - 1 loop
-                        bc_dependent_masks(i)(branch_mask_to_int(cdb.branch_mask)) <= '0';
+                        bc_dependent_masks(i)(branch_mask_to_int(cdb.cdb_branch.branch_mask)) <= '0';
                     end loop;
-                elsif (cdb.branch_mispredicted = '1' and cdb.valid = '1') then                                             -- MISPREDICT! CLEAR ALL ENTRIES ALLOCATED TO BRANCHES AFTER THE MISPREDICTED ONE
-                    outstanding_branches_mask_i <= bc_dependent_masks(branch_mask_to_int(cdb.branch_mask));-- and not cdb.branch_mask;
-                    outstanding_branches_mask_i(branch_mask_to_int(cdb.branch_mask)) <= '0'; -- and not cdb.branch_mask;
+                elsif (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') then                                             -- MISPREDICT! CLEAR ALL ENTRIES ALLOCATED TO BRANCHES AFTER THE MISPREDICTED ONE
+                    outstanding_branches_mask_i <= bc_dependent_masks(branch_mask_to_int(cdb.cdb_branch.branch_mask));-- and not cdb.branch_mask;
+                    outstanding_branches_mask_i(branch_mask_to_int(cdb.cdb_branch.branch_mask)) <= '0'; -- and not cdb.branch_mask;
                 end if;
             end if;
         end if;

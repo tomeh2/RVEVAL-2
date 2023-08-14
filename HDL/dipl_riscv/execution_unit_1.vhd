@@ -83,8 +83,8 @@ begin
     pipeline_reg_0_next.ldq_tag_valid <= not uop_is_store and valid;
     pipeline_reg_0_next.stq_tag <= eu_in_0.stq_tag;
     pipeline_reg_0_next.stq_tag_valid <= uop_is_store and valid;
-    pipeline_reg_0_next.speculated_branches_mask <= eu_in_0.speculated_branches_mask when cdb.valid = '0' else eu_in_0.speculated_branches_mask and not cdb.branch_mask;
-    pipeline_reg_0_next.valid <= '1' when valid = '1' and not ((eu_in_0.speculated_branches_mask and cdb.branch_mask) /= BRANCH_MASK_ZERO and cdb.branch_mispredicted = '1' and cdb.valid = '1') else '0';
+    pipeline_reg_0_next.speculated_branches_mask <= eu_in_0.speculated_branches_mask when cdb.cdb_branch.valid = '0' else eu_in_0.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+    pipeline_reg_0_next.valid <= '1' when valid = '1' and not ((eu_in_0.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') else '0';
 
     lsu_generated_address <= pipeline_reg_0.generated_address;
     lsu_generated_data <= pipeline_reg_0.generated_data;

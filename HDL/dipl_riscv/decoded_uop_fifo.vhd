@@ -111,7 +111,7 @@ begin
                 head_counter_reg <= (others => '0');
                 tail_counter_reg <= (others => '0');
             else
-                if (cdb.branch_mispredicted = '1' and cdb.valid = '1') then
+                if (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') then
                     head_counter_reg <= (others => '0');
                     tail_counter_reg <= (others => '0');
                 else
@@ -158,15 +158,15 @@ begin
     begin
         if (rising_edge(clk)) then
             for i in 0 to DEPTH - 1 loop
-                if (cdb.valid = '1') then
-                    br_spec_masks(i) <= br_spec_masks(i) and not cdb.branch_mask;
+                if (cdb.cdb_branch.valid = '1') then
+                    br_spec_masks(i) <= br_spec_masks(i) and not cdb.cdb_branch.branch_mask;
                 end if;
             end loop;
 
             fifo_out <= fifo(to_integer(fifo_next_read_addr));
             
-            if (cdb.valid = '1') then
-                uop_out.speculated_branches_mask <= br_spec_masks(to_integer(fifo_next_read_addr)) and not cdb.branch_mask;
+            if (cdb.cdb_branch.valid = '1') then
+                uop_out.speculated_branches_mask <= br_spec_masks(to_integer(fifo_next_read_addr)) and not cdb.cdb_branch.branch_mask;
             else
                 uop_out.speculated_branches_mask <= br_spec_masks(to_integer(fifo_next_read_addr));
             end if;
@@ -184,7 +184,7 @@ begin
                                                       uop_in.branch_predicted_outcome &
                                                       uop_in.csr;
             
-                br_spec_masks(to_integer(tail_counter_reg)) <= uop_in.speculated_branches_mask when cdb.valid = '0' else uop_in.speculated_branches_mask and not cdb.branch_mask;
+                br_spec_masks(to_integer(tail_counter_reg)) <= uop_in.speculated_branches_mask when cdb.cdb_branch.valid = '0' else uop_in.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
             end if;
         end if;
     end process;

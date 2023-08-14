@@ -59,7 +59,7 @@ module top_sim(
     initial
     begin
         int fd;
-        fd = $fopen("D:/Programs/cygwin64/home/Tomi/github/f32c/src/examples/hello_c/hello.srec", "rb");
+        fd = $fopen("D:/Programs/cygwin64/home/Tomi/github/f32c/src/examples/sevseg/sevseg.srec", "rb");
         if (!fd)
             $display("Could not open file!");
         else

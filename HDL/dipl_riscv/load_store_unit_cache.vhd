@@ -41,7 +41,7 @@ entity load_store_unit_cache is
     );
     port(
         cdb_in : in cdb_type;
-        cdb_out : out cdb_type;
+        cdb_out : out cdb_single_type;
         cdb_request : out std_logic;
         cdb_granted : in std_logic;
 
@@ -202,6 +202,8 @@ architecture rtl of load_store_unit_cache is
     signal load_wait_tag : std_logic_vector(DCACHE_TAG_SIZE - 1 downto 0);
     signal load_wait : std_logic;
     
+    signal load_set_executed_bit : std_logic;
+    
     signal store_wait_tag : std_logic_vector(DCACHE_TAG_SIZE - 1 downto 0);
     signal store_wait : std_logic;
     
@@ -340,21 +342,23 @@ begin
         cache_read_addr <= load_queue(to_integer(lq_head_counter_reg))(LQ_ADDR_START downto LQ_ADDR_END);
     end process;
     
-    load_state_outputs_proc : process(load_state_reg, cdb_in, load_wait, lq_load_ready)
+    load_state_outputs_proc : process(load_state_reg, cdb_in, load_wait, lq_load_ready, cdb_granted)
     begin
 
         cdb_request <= '0';
         cdb_out.valid <= '0';
         load_data_reg_en <= '0';
         cache_read_valid <= '0';
+        load_set_executed_bit <= '0';
         case load_state_reg is
             when LOAD_IDLE => 
                 cache_read_valid <= lq_load_ready and not load_wait;
             when LOAD_BUSY => 
                 load_data_reg_en <= '1';
             when LOAD_WRITEBACK => 
-                    cdb_request <= '1';
-                    cdb_out.valid <= '1';
+                load_set_executed_bit <= cdb_granted;
+                cdb_request <= '1';
+                cdb_out.valid <= '1';
         end case;
     end process;
     
@@ -364,8 +368,8 @@ begin
             if (reset = '1') then
                 load_state_reg <= LOAD_IDLE;
             else
-                if (cdb_in.branch_mispredicted = '1' and cdb_in.valid = '1' and 
-                   (((load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_BRMASK_START downto LQ_BRMASK_END) and cdb_in.branch_mask)) /= BRANCH_MASK_ZERO)) then
+                if (cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1' and 
+                   (((load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_BRMASK_START downto LQ_BRMASK_END) and cdb_in.cdb_branch.branch_mask)) /= BRANCH_MASK_ZERO)) then
                     load_state_reg <= LOAD_IDLE;
                 else
                     load_state_reg <= load_state_next;
@@ -374,7 +378,7 @@ begin
         end if;
     end process;
 
-    spec_br_mask <= next_uop.speculated_branches_mask when cdb_in.valid = '0' else next_uop.speculated_branches_mask and not cdb_in.branch_mask;
+    spec_br_mask <= next_uop.speculated_branches_mask when cdb_in.cdb_branch.valid = '0' else next_uop.speculated_branches_mask and not cdb_in.cdb_branch.branch_mask;
     -- QUEUE CONTROL
     queue_control_proc : process(clk)
     begin
@@ -414,8 +418,8 @@ begin
                         load_queue(i)(to_integer(unsigned(sq_finished_tag)) + LQ_STQ_MASK_END) <= '0';
                     end if;
                     
-                    if (cdb_in.valid = '1') then
-                        load_queue(i)(LQ_BRMASK_START downto LQ_BRMASK_END) <= load_queue(i)(LQ_BRMASK_START downto LQ_BRMASK_END) and not cdb_in.branch_mask;
+                    if (cdb_in.cdb_branch.valid = '1') then
+                        load_queue(i)(LQ_BRMASK_START downto LQ_BRMASK_END) <= load_queue(i)(LQ_BRMASK_START downto LQ_BRMASK_END) and not cdb_in.cdb_branch.branch_mask;
                     end if;
                 end loop;
                 
@@ -432,6 +436,10 @@ begin
                                                                    '1';
                 end if;
                 
+                if (load_set_executed_bit = '1') then
+                    load_queue(to_integer(lq_head_counter_reg))(LQ_EXECUTED_BIT) <= '1';
+                end if;
+                
                 if (sq_retire_tag_valid = '1') then
                     store_queue(to_integer(unsigned(sq_retire_tag)))(SQ_RETIRED_BIT) <= '1';
                 end if;
@@ -440,7 +448,7 @@ begin
                     store_queue(to_integer(sq_head_counter_reg))(SQ_FINISHED_BIT) <= '1';
                 end if;
                 
-                if (cdb_granted = '1' and not (cdb_in.branch_mispredicted = '1' and cdb_in.valid = '1')) then
+                if (cdb_granted = '1' and not (cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1')) then
                     load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_VALID_BIT) <= '0';
                 end if;
                                                                    
@@ -472,7 +480,7 @@ begin
                 
                 load_data_reg <= (others => '0');
             else
-                if ((sq_enqueue_en = '1' and i_sq_full = '0') or (cdb_in.branch_mispredicted = '1' and cdb_in.valid = '1')) then
+                if ((sq_enqueue_en = '1' and i_sq_full = '0') or (cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1')) then
                     sq_tail_counter_reg <= sq_tail_counter_next;
                 end if;
                 
@@ -480,7 +488,7 @@ begin
                     sq_head_counter_reg <= sq_head_counter_next;
                 end if;
                 
-                if ((lq_enqueue_en = '1' and i_lq_full = '0') or (cdb_in.branch_mispredicted = '1' and cdb_in.valid = '1')) then
+                if ((lq_enqueue_en = '1' and i_lq_full = '0') or (cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1')) then
                     lq_tail_counter_reg <= lq_tail_counter_next;
                 end if;
                 
@@ -498,14 +506,14 @@ begin
     sq_head_counter_next <= (others => '0') when sq_head_counter_reg = SQ_ENTRIES - 1 else
                             sq_head_counter_reg + 1;
                             
-    sq_tail_counter_next <= sq_tail_mispredict_recovery_memory(branch_mask_to_int(cdb_in.branch_mask)) when cdb_in.branch_mispredicted = '1' and cdb_in.valid = '1' else  
+    sq_tail_counter_next <= sq_tail_mispredict_recovery_memory(branch_mask_to_int(cdb_in.cdb_branch.branch_mask)) when cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1' else  
                             (others => '0') when sq_tail_counter_reg = SQ_ENTRIES - 1 else
                             sq_tail_counter_reg + 1;
                             
     lq_head_counter_next <= (others => '0') when lq_head_counter_reg = LQ_ENTRIES - 1 else
                             lq_head_counter_reg + 1;
                             
-    lq_tail_counter_next <= lq_tail_mispredict_recovery_memory(branch_mask_to_int(cdb_in.branch_mask)) when cdb_in.branch_mispredicted = '1' and cdb_in.valid = '1' else 
+    lq_tail_counter_next <= lq_tail_mispredict_recovery_memory(branch_mask_to_int(cdb_in.cdb_branch.branch_mask)) when cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1' else 
                             (others => '0') when lq_tail_counter_reg = LQ_ENTRIES - 1 else
                             lq_tail_counter_reg + 1;
               
@@ -608,10 +616,13 @@ begin
     cdb_out.is_jalr <= '0';
     cdb_out.branch_taken <= '0';
     
-    lq_load_ready <= '1' when load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_STQ_MASK_START downto LQ_STQ_MASK_END) = LQ_STQ_MASK_ZERO and 
-                              (load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_BRMASK_START downto LQ_BRMASK_END) = BRANCH_MASK_ZERO or load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_ADDR_START downto LQ_ADDR_END) < NONCACHEABLE_BASE_ADDR) and
-                              load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_ADDR_VALID) = '1' and load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_VALID_BIT) = '1' and
-                               lq_empty = '0' else '0';
+    lq_load_ready <= '1' when (load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_STQ_MASK_START downto LQ_STQ_MASK_END) = LQ_STQ_MASK_ZERO and 
+                              (load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_BRMASK_START downto LQ_BRMASK_END) = BRANCH_MASK_ZERO or 
+                              load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_ADDR_START downto LQ_ADDR_END) < NONCACHEABLE_BASE_ADDR) and
+                              load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_ADDR_VALID) = '1' and 
+                              load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_VALID_BIT) = '1' and
+                              load_queue(to_integer(unsigned(lq_head_counter_reg)))(LQ_EXECUTED_BIT) = '0' and
+                              lq_empty = '0') else '0';
     
 end rtl;
 

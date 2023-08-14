@@ -35,7 +35,7 @@ package pkg_sched is
     constant ENTRY_TAG_BITS : integer := integer(ceil(log2(real(SCHEDULER_ENTRIES))));
     
     constant ENTRY_TAG_ZERO : std_logic_vector(ENTRY_TAG_BITS - 1 downto 0) := (others => '0');
-    constant OUTPUT_PORT_COUNT : integer := 2;
+    constant OUTPUT_PORT_COUNT : integer := 3;
 
     -- ================================================================================
     --                                TYPE DECLARATIONS 
@@ -72,7 +72,7 @@ package pkg_sched is
     -- Scheduler entry format [OP. TYPE | OP. SEL | OPERAND_1_TAG | OPERAND_1_TAG_V | OPERAND_2_TAG | OPERAND_2_TAG_V | DEST_PHYS_REG_TAG | STORE QUEUE TAG | LOAD QUEUE TAG | IMMEDIATE | INSTR. TAG | CURR. BRANCH MASK | DEP. BRANCH TAG | BUSY]
     type reservation_station_entries_type is array(SCHEDULER_ENTRIES - 1 downto 0) of std_logic_vector(ENTRY_BITS - 1 downto 0);
     type sched_optype_bits_type is array(1 downto 0) of std_logic_vector(SCHEDULER_ENTRIES - 1 downto 0);
-    type sched_read_sel_type is array(1 downto 0) of std_logic_vector(ENTRY_TAG_BITS - 1 downto 0);
+    type sched_read_sel_type is array(OUTPUT_PORT_COUNT - 1 downto 0) of std_logic_vector(ENTRY_TAG_BITS - 1 downto 0);
     -- ================================================================================
     -- ////////////////////////////////////////////////////////////////////////////////
     -- ================================================================================

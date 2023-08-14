@@ -80,8 +80,8 @@ begin
                     end if;
                 end loop;
             else
-                if (cdb.branch_mispredicted = '1' and cdb.valid = '1') then
-                    register_status_vector <= rsv_mispredict_recovery_memory(branch_mask_to_int(cdb.branch_mask));
+                if (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') then
+                    register_status_vector <= rsv_mispredict_recovery_memory(branch_mask_to_int(cdb.cdb_branch.branch_mask));
                 else
                     if (curr_instr_branch_mask /= BRANCH_MASK_ZERO and next_uop_valid = '1') then
                         rsv_mispredict_recovery_memory(branch_mask_to_int(curr_instr_branch_mask)) <= register_status_vector;

@@ -60,12 +60,12 @@ package pkg_cpu is
     
     constant ICACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant ICACHE_INSTR_PER_CACHELINE : integer := 4;
-    constant ICACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
+    constant ICACHE_NUM_SETS : integer := 128;                     -- MUST BE POWER OF 2!
     --constant ICACHE_REPLACEMENT_POLICY : string := "FIFO";                -- In consideration
     
     constant DCACHE_ASSOCIATIVITY : integer := 2;                   -- MUST BE POWER OF 2!
     constant DCACHE_ENTRIES_PER_CACHELINE : integer := 4;
-    constant DCACHE_NUM_SETS : integer := 32;                     -- MUST BE POWER OF 2!
+    constant DCACHE_NUM_SETS : integer := 128;                     -- MUST BE POWER OF 2!
     constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"FFFF_0000";
     --constant NONCACHEABLE_BASE_ADDR : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0) := X"8000_0000";
     
@@ -276,7 +276,7 @@ package pkg_cpu is
 
     -- CDB Configuration
     
-    type cdb_type is record
+    type cdb_single_type is record
         pc_low_bits : std_logic_vector(CDB_PC_BITS - 1 downto 0);
         instr_tag : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
         phys_dest_reg : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
@@ -292,7 +292,28 @@ package pkg_cpu is
         valid : std_logic;
     end record;
     
-    constant CDB_OPEN_CONST : cdb_type := ((others => '0'),
+    type cdb_type is record
+        cdb_data : cdb_single_type;
+        cdb_branch : cdb_single_type;
+    end record;
+    
+    type cdb_branch_type is record
+        pc_low_bits : std_logic_vector(CDB_PC_BITS - 1 downto 0);
+        instr_tag : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
+        phys_dest_reg : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
+        data : std_logic_vector(OPERAND_BITS - 1 downto 0);
+        target_addr : std_logic_vector(OPERAND_BITS - 1 downto 0);
+        branch_mask : std_logic_vector(BRANCHING_DEPTH - 1 downto 0); 
+        branch_taken : std_logic;
+        branch_mispredicted : std_logic;
+        is_jalr : std_logic;            -- JALR is special by the fact that it is the only instruction whose target PC cannot be determined immediately from the instruction itself, so in order to branch
+                                        -- properly we need to know if cdb has the result of a JALR instruction to fill the PC with the correct value
+        is_jal : std_logic;
+                                        
+        valid : std_logic;
+    end record;
+    
+    constant CDB_SINGLE_OPEN_CONST : cdb_single_type := ((others => '0'),
                                             (others => '0'),
                                             (others => '0'),
                                             (others => '0'),
@@ -303,6 +324,8 @@ package pkg_cpu is
                                             '0',
                                             '0',
                                             '0');
+                                            
+    constant CDB_OPEN_CONST : cdb_type := (CDB_SINGLE_OPEN_CONST, CDB_SINGLE_OPEN_CONST);
                                             
     constant UOP_ZERO : uop_decoded_type := ((others => '0'),
                                      (others => '0'),

@@ -66,12 +66,22 @@ package pkg_ee is
         valid : std_logic;
     end record;
     
+    type execution_engine_pipeline_register_2_2_type is record
+        uop : uop_exec_type;
+        valid : std_logic;
+    end record;
+    
     type execution_engine_pipeline_register_3_0_type is record
         uop : uop_exec_type;
         valid : std_logic;
     end record;
     
     type execution_engine_pipeline_register_3_1_type is record
+        uop : uop_exec_type;
+        valid : std_logic;
+    end record;
+    
+    type execution_engine_pipeline_register_3_2_type is record
         uop : uop_exec_type;
         valid : std_logic;
     end record;
@@ -86,6 +96,11 @@ package pkg_ee is
         valid : std_logic;
     end record;
     
+    type execution_engine_pipeline_register_4_2_type is record
+        eu_input : eu_input_type;
+        valid : std_logic;
+    end record;
+    
     constant EE_PIPELINE_REG_2_0_RESET : execution_engine_pipeline_register_2_0_type := 
                                            ((others => (others => '0')),
                                            '0');
@@ -93,6 +108,10 @@ package pkg_ee is
     constant EE_PIPELINE_REG_2_1_RESET : execution_engine_pipeline_register_2_1_type := 
                                            ((others => (others => '0')),
                                            '0');
+                                           
+    constant EE_PIPELINE_REG_2_2_RESET : execution_engine_pipeline_register_2_2_type := 
+                                           ((others => (others => '0')),
+                                           '0'); 
                                            
     constant EE_PIPELINE_REG_3_0_RESET : execution_engine_pipeline_register_3_0_type := 
                                            ((others => (others => '0')),
@@ -102,11 +121,19 @@ package pkg_ee is
                                            ((others => (others => '0')),
                                            '0');
                                            
+    constant EE_PIPELINE_REG_3_2_RESET : execution_engine_pipeline_register_3_2_type := 
+                                           ((others => (others => '0')),
+                                           '0');
+                                           
     constant EE_PIPELINE_REG_4_0_RESET : execution_engine_pipeline_register_4_0_type := 
                                            (EU_INPUT_ZERO,
                                            '0');
                                            
     constant EE_PIPELINE_REG_4_1_RESET : execution_engine_pipeline_register_4_1_type := 
+                                           (EU_INPUT_ZERO,
+                                           '0');
+                                           
+    constant EE_PIPELINE_REG_4_2_RESET : execution_engine_pipeline_register_4_2_type := 
                                            (EU_INPUT_ZERO,
                                            '0');
 end package;

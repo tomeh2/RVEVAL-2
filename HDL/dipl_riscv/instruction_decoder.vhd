@@ -136,6 +136,7 @@ begin
                 uop.operation_select(3 downto 0) <= (others => '0');
                 
                 uop.arch_src_reg_1_addr <= "00000";
+                uop.arch_src_reg_2_addr <= "00000";
             when OPCODE_AUIPC => 
                 uop.operation_type <= OPTYPE_INTEGER;
                 uop.operation_select(5) <= '1';

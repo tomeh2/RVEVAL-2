@@ -189,8 +189,8 @@ begin
     
     stall_f3_d1 <= d1_bc_empty or fifo_full;
     stall_f1_f3 <= (ic_wait and f2_f3_pipeline_reg.valid) or (stall_f3_d1 and f3_d1_pipeline_reg.valid);
-    cdb_branch_mispredicted <= (cdb.valid and cdb.branch_mispredicted);--(debug_cdb_mispred and debug_cdb_valid);----
-    cdb_branch <= '1' when (cdb.branch_mask /= BRANCH_MASK_ZERO or cdb.is_jal = '1') and cdb.valid = '1' else '0';
+    cdb_branch_mispredicted <= (cdb.cdb_branch.valid and cdb.cdb_branch.branch_mispredicted);--(debug_cdb_mispred and debug_cdb_valid);----
+    cdb_branch <= '1' when (cdb.cdb_branch.branch_mask /= BRANCH_MASK_ZERO or cdb.cdb_branch.is_jal = '1') and cdb.cdb_branch.valid = '1' else '0';
     flush_pipeline <= cdb_branch_mispredicted;-- or debug_clear_pipeline;
     -- ======================================================================
 
@@ -201,9 +201,9 @@ begin
                                     hit => f2_pred_is_branch,
                                     stall => stall_f1_f3,
                                     
-                                    branch_write_addr => cdb.pc_low_bits,
-                                    branch_write_target_addr => cdb.target_addr,
-                                    write_en => cdb.branch_taken and cdb.valid,
+                                    branch_write_addr => cdb.cdb_branch.pc_low_bits,
+                                    branch_write_target_addr => cdb.cdb_branch.target_addr,
+                                    write_en => cdb.cdb_branch.branch_taken and cdb.cdb_branch.valid,
                                     
                                     clk => clk,
                                     reset => reset);
@@ -232,7 +232,7 @@ begin
                 f1_pc_reg <= PC_VAL_INIT;
             else
                 if (cdb_branch_mispredicted = '1') then
-                    f1_pc_reg <= cdb.target_addr;--debug_cdb_targ_addr;
+                    f1_pc_reg <= cdb.cdb_branch.target_addr;--debug_cdb_targ_addr;
                 elsif (d1_branch_target_mispredict = '1') then
                     f1_pc_reg <= d1_target_mispred_recovery_pc;
                 elsif (f3_pred_outcome = '1') then
@@ -246,8 +246,8 @@ begin
     f1_pc <= f1_pc_reg;
     
     bp_in.fetch_addr <= f1_f2_pipeline_reg.pc;
-    bp_in.put_addr <= cdb.pc_low_bits;
-    bp_in.put_outcome <= (cdb.branch_taken or cdb.is_jal);
+    bp_in.put_addr <= cdb.cdb_branch.pc_low_bits;
+    bp_in.put_outcome <= (cdb.cdb_branch.branch_taken or cdb.cdb_branch.is_jal);
     bp_in.put_en <= cdb_branch;
     
     f3_pred_outcome <= bp_out.predicted_outcome and f2_f3_pipeline_reg.pred_is_branch and f2_f3_pipeline_reg.valid;

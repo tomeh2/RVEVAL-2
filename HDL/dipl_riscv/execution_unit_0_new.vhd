@@ -33,6 +33,8 @@ use WORK.PKG_CPU.ALL;
 
 entity execution_unit_0_new is
     port(
+        cdb_in : in cdb_type;
+    
         eu_in_0 : in eu_input_type;
     
         valid : in std_logic;       -- Signals that the input values are valid
@@ -40,7 +42,7 @@ entity execution_unit_0_new is
         -- =================================================
         
         -- ==================== CDB ====================
-        cdb : out cdb_type; 
+        cdb : out cdb_single_type; 
         cdb_request : out std_logic;
         cdb_granted : in std_logic;
         -- =============================================
@@ -65,8 +67,8 @@ architecture rtl of execution_unit_0_new is
     signal branch_target_addr : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     
     signal i_ready : std_logic;
-    signal eu0_pipeline_reg_0 : cdb_type;
-    signal eu0_pipeline_reg_0_next : cdb_type;
+    signal eu0_pipeline_reg_0 : cdb_single_type;
+    signal eu0_pipeline_reg_0_next : cdb_single_type;
 begin
     pipeline_reg_0_proc : process(clk)
     begin
@@ -115,7 +117,7 @@ begin
     eu0_pipeline_reg_0_next.target_addr <= branch_target_addr;
     eu0_pipeline_reg_0_next.instr_tag <= eu_in_0.instr_tag;
     eu0_pipeline_reg_0_next.phys_dest_reg <= eu_in_0.phys_dest_reg_addr;
-    eu0_pipeline_reg_0_next.branch_mask <= eu_in_0.branch_mask;
+    eu0_pipeline_reg_0_next.branch_mask <= (others => '0');
     eu0_pipeline_reg_0_next.branch_taken <= (branch_taken and eu_in_0.operation_select(6)) or eu_in_0.operation_select(8) or eu_in_0.operation_select(9);
     eu0_pipeline_reg_0_next.branch_mispredicted <= '1' when (eu_in_0.operation_select(6) = '1' and eu_in_0.branch_predicted_outcome /= branch_taken) or (eu_in_0.branch_predicted_target_pc /= branch_target_addr and (eu_in_0.operation_select(8) = '1' or eu_in_0.operation_select(9) = '1')) else '0';
     eu0_pipeline_reg_0_next.is_jalr <= eu_in_0.operation_select(8) or eu_in_0.operation_select(9);

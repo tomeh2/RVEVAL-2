@@ -55,13 +55,17 @@ entity reorder_buffer is
     
         next_instr_tag : out std_logic_vector(integer(ceil(log2(real(REORDER_BUFFER_ENTRIES)))) - 1 downto 0);
         
-        pc_rd_en : in std_logic;
         write_1_en : in std_logic;
         commit_1_en : in std_logic;
         head_valid : out std_logic;
 
-        rob_entry_addr : in std_logic_vector(integer(ceil(log2(real(REORDER_BUFFER_ENTRIES)))) - 1 downto 0);
+        pc_rd_en_1 : in std_logic;
+        rob_entry_addr_1 : in std_logic_vector(integer(ceil(log2(real(REORDER_BUFFER_ENTRIES)))) - 1 downto 0);
         pc_1_out : out std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        
+        pc_rd_en_2 : in std_logic;
+        rob_entry_addr_2 : in std_logic_vector(integer(ceil(log2(real(REORDER_BUFFER_ENTRIES)))) - 1 downto 0);
+        pc_2_out : out std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
 
         full : out std_logic;
         empty : out std_logic;
@@ -108,6 +112,7 @@ architecture rtl of reorder_buffer is
     signal rob_valid_bits : std_logic_vector(REORDER_BUFFER_ENTRIES - 1 downto 0);
     signal rob_head_data_1 : std_logic_vector(ROB_ENTRY_BITS - 1 downto 0);
     signal rob_head_data_2 : std_logic_vector(ROB_ENTRY_BITS - 1 downto 0);
+    signal rob_head_data_3 : std_logic_vector(ROB_ENTRY_BITS - 1 downto 0);
     
     -- ===== HEAD & TAIL COUNTERS =====
     signal rob_next_read_addr : std_logic_vector(ROB_TAG_BITS - 1 downto 0);
@@ -144,7 +149,7 @@ begin
         if (rising_edge(clk)) then
             if (reset = '1') then
                 rob_tail_counter_reg <= COUNTER_ONE;
-            elsif ((write_1_en = '1' and rob_full = '0') or (cdb.branch_mispredicted = '1' and cdb.valid = '1')) then
+            elsif ((write_1_en = '1' and rob_full = '0') or (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1')) then
                 rob_tail_counter_reg <= rob_tail_counter_next;
             end if;
         end if;
@@ -169,8 +174,8 @@ begin
             rob_head_counter_next <= std_logic_vector(unsigned(rob_head_counter_reg) + 1);
         end if;
         
-        if (cdb.branch_mispredicted = '1' and cdb.valid = '1') then        -- Clear all instructions after branch in ROB
-            rob_tail_counter_next <= rob_tail_mispredict_recovery_memory(branch_mask_to_int(cdb.branch_mask));
+        if (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') then        -- Clear all instructions after branch in ROB
+            rob_tail_counter_next <= rob_tail_mispredict_recovery_memory(branch_mask_to_int(cdb.cdb_branch.branch_mask));
         elsif (unsigned(rob_tail_counter_reg) = REORDER_BUFFER_ENTRIES - 1) then
             rob_tail_counter_next <= COUNTER_ONE;
         else
@@ -180,7 +185,7 @@ begin
     -- =======================================
     
     -- ========== ROB CONTROL ==========
-    rob_write_en <= '1' when write_1_en = '1' and rob_full = '0' and not (cdb.branch_mispredicted = '1' and cdb.valid = '1') else '0';
+    rob_write_en <= '1' when write_1_en = '1' and rob_full = '0' and not (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') else '0';
     
     rob_control_proc : process(clk)
     begin
@@ -205,12 +210,20 @@ begin
                 
                 rob_head_data_1 <= reorder_buffer(to_integer(unsigned(rob_next_read_addr)));
                 
-                if (pc_rd_en = '1') then
-                    rob_head_data_2 <= reorder_buffer(to_integer(unsigned(rob_entry_addr)));
+                if (pc_rd_en_1 = '1') then
+                    rob_head_data_2 <= reorder_buffer(to_integer(unsigned(rob_entry_addr_1)));
+                end if;
+                
+                if (pc_rd_en_2 = '1') then
+                    rob_head_data_3 <= reorder_buffer(to_integer(unsigned(rob_entry_addr_2)));
                 end if;
 
-                if (cdb.valid = '1') then
-                    rob_valid_bits(to_integer(unsigned(cdb.instr_tag))) <= '1';
+                if (cdb.cdb_branch.valid = '1') then
+                    rob_valid_bits(to_integer(unsigned(cdb.cdb_branch.instr_tag))) <= '1';
+                end if;
+                
+                if (cdb.cdb_data.valid = '1') then
+                    rob_valid_bits(to_integer(unsigned(cdb.cdb_data.instr_tag))) <= '1';
                 end if;
             end if;
         end if;
@@ -224,9 +237,11 @@ begin
     head_phys_dest_reg <= rob_head_data_1(PHYS_DEST_REG_START downto PHYS_DEST_REG_END);
     head_stq_tag <= rob_head_data_1(STQ_TAG_START downto STQ_TAG_END);
     head_operation_type <= rob_head_data_1(OP_TYPE_START downto OP_TYPE_END);
-    pc_1_out <= rob_head_data_2(PC_START downto PC_END);
     
-    rob_full <= '1' when (rob_tail_counter_next = rob_head_counter_reg) and not (cdb.branch_mispredicted = '1' and cdb.valid = '1') else '0';
+    pc_1_out <= rob_head_data_2(PC_START downto PC_END);
+    pc_2_out <= rob_head_data_3(PC_START downto PC_END);
+    
+    rob_full <= '1' when (rob_tail_counter_next = rob_head_counter_reg) and not (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') else '0';
     rob_empty <= '1' when rob_head_counter_reg = rob_tail_counter_reg else '0';
     rob_empty_delayed <= rob_empty when rising_edge(clk);
 

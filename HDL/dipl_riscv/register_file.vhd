@@ -22,12 +22,6 @@
 --SOFTWARE.
 --===============================================================================
 
---------------------------------
--- NOTES:
--- 1) Does this infer LUT-RAM?
---------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -50,8 +44,8 @@ entity register_file is
         rd_2_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
         rd_3_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
         rd_4_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
-        wr_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
-        
+        rd_5_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
+        rd_6_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
         
         alloc_reg_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
         alloc_reg_addr_v : in std_logic;
@@ -65,13 +59,14 @@ entity register_file is
         rd_2_data : out std_logic_vector(REG_DATA_WIDTH_BITS - 1 downto 0);
         rd_3_data : out std_logic_vector(REG_DATA_WIDTH_BITS - 1 downto 0);
         rd_4_data : out std_logic_vector(REG_DATA_WIDTH_BITS - 1 downto 0);
-        wr_data : in std_logic_vector(REG_DATA_WIDTH_BITS - 1 downto 0);
+        rd_5_data : out std_logic_vector(REG_DATA_WIDTH_BITS - 1 downto 0);
+        rd_6_data : out std_logic_vector(REG_DATA_WIDTH_BITS - 1 downto 0);
         
         -- Control busses
     
-        en : in std_logic;
         rd_1_en : in std_logic;
         rd_2_en : in std_logic;
+        rd_3_en : in std_logic;
         reset : in std_logic;                                                           -- Sets all registers to 0 when high (synchronous)
         clk : in std_logic                                                         
     );
@@ -93,8 +88,6 @@ architecture rtl of register_file is
     
     signal reg_file_valid_bits : std_logic_vector(REGFILE_ENTRIES - 1 downto 0);
     -- ==================================
-    
-    signal rf_write_en : std_logic;
 begin
     
 
@@ -102,8 +95,12 @@ begin
     begin
         -- Writing to registers
         if (rising_edge(clk)) then
-            if (rf_write_en = '1') then                    
-                reg_file(to_integer(unsigned(wr_addr))) <= wr_data;
+            if (cdb.cdb_branch.valid = '1' and cdb.cdb_branch.phys_dest_reg /= REG_ADDR_ZERO) then
+                reg_file(to_integer(unsigned(cdb.cdb_branch.phys_dest_reg))) <= cdb.cdb_branch.data;
+            end if;
+        
+            if (cdb.cdb_data.valid = '1' and cdb.cdb_data.phys_dest_reg /= REG_ADDR_ZERO) then
+                reg_file(to_integer(unsigned(cdb.cdb_data.phys_dest_reg))) <= cdb.cdb_data.data;
             end if;
                 
             if (rd_1_en = '1') then
@@ -115,6 +112,11 @@ begin
                 rd_3_data <= reg_file(to_integer(unsigned(rd_3_addr)));
                 rd_4_data <= reg_file(to_integer(unsigned(rd_4_addr)));
             end if;
+            
+            if (rd_3_en = '1') then
+                rd_5_data <= reg_file(to_integer(unsigned(rd_5_addr)));
+                rd_6_data <= reg_file(to_integer(unsigned(rd_6_addr)));
+            end if;
 
         end if;
     end process;
@@ -125,8 +127,12 @@ begin
             if (reset = '1') then
                 reg_file_valid_bits <= (others => '1');
             else
-                if (rf_write_en = '1') then
-                    reg_file_valid_bits(to_integer(unsigned(wr_addr))) <= '1';
+                if (cdb.cdb_branch.valid = '1' and cdb.cdb_branch.phys_dest_reg /= REG_ADDR_ZERO) then
+                    reg_file_valid_bits(to_integer(unsigned(cdb.cdb_branch.phys_dest_reg))) <= '1';
+                end if;
+        
+                if (cdb.cdb_data.valid = '1' and cdb.cdb_data.phys_dest_reg /= REG_ADDR_ZERO) then
+                    reg_file_valid_bits(to_integer(unsigned(cdb.cdb_data.phys_dest_reg))) <= '1';
                 end if;
             
                 if (alloc_reg_addr_v = '1' and alloc_reg_addr /= PHYS_REG_TAG_ZERO) then
@@ -138,25 +144,21 @@ begin
     
     process(all)
     begin
-        if ((cdb.phys_dest_reg = reg_1_valid_bit_addr) and cdb.valid = '1') then
+        if (((cdb.cdb_branch.phys_dest_reg = reg_1_valid_bit_addr) and cdb.cdb_branch.valid = '1') or
+            ((cdb.cdb_data.phys_dest_reg = reg_1_valid_bit_addr) and cdb.cdb_data.valid = '1')) then
             reg_1_valid <= '1';
-       --elsif (reg_1_valid_bit_addr = alloc_reg_addr and alloc_reg_addr_v = '1' and alloc_reg_addr /= PHYS_REG_TAG_ZERO) then
-        --   reg_1_valid <= '0';
         else
             reg_1_valid <= reg_file_valid_bits(to_integer(unsigned(reg_1_valid_bit_addr)));
         end if;
                 
-        if ((cdb.phys_dest_reg = reg_2_valid_bit_addr) and cdb.valid = '1') then
+        if (((cdb.cdb_branch.phys_dest_reg = reg_2_valid_bit_addr) and cdb.cdb_branch.valid = '1') or
+            ((cdb.cdb_data.phys_dest_reg = reg_2_valid_bit_addr) and cdb.cdb_data.valid = '1')) then
             reg_2_valid <= '1';
-        --elsif (reg_2_valid_bit_addr = alloc_reg_addr and alloc_reg_addr_v = '1' and alloc_reg_addr /= PHYS_REG_TAG_ZERO) then
-        --    reg_2_valid <= '0';
         else
              reg_2_valid <= reg_file_valid_bits(to_integer(unsigned(reg_2_valid_bit_addr)));
         end if;
     end process;
-    
-    rf_write_en <= '1' when en = '1' and wr_addr /= REG_ADDR_ZERO else '0';
-    
+
     regfile_debug_gen : if (ENABLE_ARCH_REGFILE_MONITORING = true) generate
         process(all)
         begin

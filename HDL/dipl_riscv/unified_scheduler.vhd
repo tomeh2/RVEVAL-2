@@ -49,6 +49,8 @@ entity unified_scheduler is
         uop_out_0_valid : out std_logic;
         uop_out_1 : out uop_exec_type;
         uop_out_1_valid : out std_logic;
+        uop_out_2 : out uop_exec_type;
+        uop_out_2_valid : out std_logic;
 
         -- CONTROL
         dispatch_en : in std_logic_vector(OUTPUT_PORT_COUNT - 1 downto 0);
@@ -71,7 +73,7 @@ architecture rtl of unified_scheduler is
     type sched_entries_type is array (SCHEDULER_ENTRIES - 1 downto 0) of sched_entry_type;
     signal sched_entries : sched_entries_type;
     
-    type sched_dispatch_ready_bits_type is array(1 downto 0) of std_logic_vector(SCHEDULER_ENTRIES - 1 downto 0);
+    type sched_dispatch_ready_bits_type is array(OUTPUT_PORT_COUNT - 1 downto 0) of std_logic_vector(SCHEDULER_ENTRIES - 1 downto 0);
     signal sched_dispatch_ready_bits : sched_dispatch_ready_bits_type;
 
     signal sched_operands_ready_bits : std_logic_vector(SCHEDULER_ENTRIES - 1 downto 0);
@@ -124,7 +126,7 @@ begin
     sched_optype_bits_proc : process(sched_entries, sched_operands_ready_bits)
     begin
         for i in 0 to SCHEDULER_ENTRIES - 1 loop
-            if ((sched_entries(i).uop.operation_type = OPTYPE_INTEGER or sched_entries(i).uop.operation_type = OPTYPE_BRANCH or sched_entries(i).uop.operation_type = OPTYPE_SYSTEM)) then
+            if ((sched_entries(i).uop.operation_type = OPTYPE_INTEGER or sched_entries(i).uop.operation_type = OPTYPE_SYSTEM)) then
                 sched_dispatch_ready_bits(0)(i) <= sched_operands_ready_bits(i);
             else
                 sched_dispatch_ready_bits(0)(i) <= '0';
@@ -135,6 +137,14 @@ begin
             else
                 sched_dispatch_ready_bits(1)(i) <= '0';
             end if;
+            
+            if (sched_entries(i).uop.operation_type = OPTYPE_BRANCH) then
+                sched_dispatch_ready_bits(2)(i) <= sched_operands_ready_bits(i);
+            else
+                sched_dispatch_ready_bits(2)(i) <= '0';
+            end if;
+            
+            
         end loop;
     end process;
 
@@ -161,15 +171,16 @@ begin
     -- into consideration. Without this part the instruction in an entry could keep waiting for a result of an instruction that has already finished execution.  
     reservation_station_operand_select_proc : process(cdb, uop_in_0, operand_1_valid, operand_2_valid)
     begin
-        if (uop_in_0.phys_src_reg_1_addr = cdb.phys_dest_reg and cdb.valid = '1') then
+        if ((uop_in_0.phys_src_reg_1_addr = cdb.cdb_branch.phys_dest_reg and cdb.cdb_branch.valid = '1') or
+            (uop_in_0.phys_src_reg_1_addr = cdb.cdb_data.phys_dest_reg and cdb.cdb_data.valid = '1')) then
             sched_operand_1_ready <= '1';
         else
             sched_operand_1_ready <= operand_1_valid;
         end if;
         
-        if (uop_in_0.phys_src_reg_2_addr = cdb.phys_dest_reg and cdb.valid = '1') then
-            sched_operand_2_ready <= '1';
-            
+        if ((uop_in_0.phys_src_reg_2_addr = cdb.cdb_branch.phys_dest_reg and cdb.cdb_branch.valid = '1') or 
+            (uop_in_0.phys_src_reg_2_addr = cdb.cdb_data.phys_dest_reg and cdb.cdb_data.valid = '1')) then
+            sched_operand_2_ready <= '1'; 
         else
             sched_operand_2_ready <= operand_2_valid;
         end if;
@@ -186,7 +197,7 @@ begin
             else
                 if (uop_in_0_valid = '1' and full = '0') then
                     sched_entries(to_integer(unsigned(sched_sel_write_1))).uop <= uop_in_0;
-                    sched_entries(to_integer(unsigned(sched_sel_write_1))).uop.speculated_branches_mask <= uop_in_0.speculated_branches_mask when cdb.valid = '0' else uop_in_0.speculated_branches_mask and not cdb.branch_mask;
+                    sched_entries(to_integer(unsigned(sched_sel_write_1))).uop.speculated_branches_mask <= uop_in_0.speculated_branches_mask when cdb.cdb_branch.valid = '0' else uop_in_0.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
                     sched_entries(to_integer(unsigned(sched_sel_write_1))).operand_1_ready <= sched_operand_1_ready;
                     sched_entries(to_integer(unsigned(sched_sel_write_1))).operand_2_ready <= sched_operand_2_ready;
                     sched_entries(to_integer(unsigned(sched_sel_write_1))).valid <= '1';
@@ -199,21 +210,25 @@ begin
                 end loop;
 
                 for i in 0 to SCHEDULER_ENTRIES - 1 loop
-                    if (sched_entries(i).uop.phys_src_reg_1_addr = cdb.phys_dest_reg and
-                        sched_entries(i).valid = '1' and cdb.valid = '1') then
+                    if ((sched_entries(i).uop.phys_src_reg_1_addr = cdb.cdb_branch.phys_dest_reg and
+                        sched_entries(i).valid = '1' and cdb.cdb_branch.valid = '1') or 
+                        (sched_entries(i).uop.phys_src_reg_1_addr = cdb.cdb_data.phys_dest_reg and
+                        sched_entries(i).valid = '1' and cdb.cdb_data.valid = '1')) then
                         sched_entries(i).operand_1_ready <= '1';
                     end if;
                     
-                    if (sched_entries(i).uop.phys_src_reg_2_addr = cdb.phys_dest_reg and
-                        sched_entries(i).valid = '1' and cdb.valid = '1') then
+                    if ((sched_entries(i).uop.phys_src_reg_2_addr = cdb.cdb_branch.phys_dest_reg and
+                        sched_entries(i).valid = '1' and cdb.cdb_branch.valid = '1') or 
+                        (sched_entries(i).uop.phys_src_reg_2_addr = cdb.cdb_data.phys_dest_reg and
+                        sched_entries(i).valid = '1' and cdb.cdb_data.valid = '1')) then
                         sched_entries(i).operand_2_ready <= '1';
                     end if;
                     
                     -- Cancel all speculative instructions for which it has been determined that they have been mispredicted
-                    if ((sched_entries(i).uop.speculated_branches_mask and cdb.branch_mask) /= BRANCH_MASK_ZERO and cdb.branch_mispredicted = '1' and cdb.valid = '1') then
+                    if ((sched_entries(i).uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') then
                         sched_entries(i).valid <= '0';
-                    elsif (cdb.branch_mask /= BRANCH_MASK_ZERO and cdb.valid = '1' and sched_entries(i).valid = '1') then
-                        sched_entries(i).uop.speculated_branches_mask <= sched_entries(i).uop.speculated_branches_mask and (not cdb.branch_mask);
+                    elsif (cdb.cdb_branch.branch_mask /= BRANCH_MASK_ZERO and cdb.cdb_branch.valid = '1' and sched_entries(i).valid = '1') then
+                        sched_entries(i).uop.speculated_branches_mask <= sched_entries(i).uop.speculated_branches_mask and (not cdb.cdb_branch.branch_mask);
                     end if;
                 end loop;
             end if;
@@ -228,6 +243,9 @@ begin
         
         uop_out_1 <= sched_entries(to_integer(unsigned(sched_read_sel(1)))).uop;
         uop_out_1_valid <= dispatch_en(1) and sched_read_sel_valid(1);
+        
+        uop_out_2 <= sched_entries(to_integer(unsigned(sched_read_sel(2)))).uop;
+        uop_out_2_valid <= dispatch_en(2) and sched_read_sel_valid(2);
     end process;
 end rtl;
 

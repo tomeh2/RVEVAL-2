@@ -96,6 +96,10 @@ architecture Structural of execution_engine is
     signal pipeline_reg_2_1_next : execution_engine_pipeline_register_2_1_type;
     signal pipeline_reg_2_1_we : std_logic;
     
+    signal pipeline_reg_2_2 : execution_engine_pipeline_register_2_2_type;
+    signal pipeline_reg_2_2_next : execution_engine_pipeline_register_2_2_type;
+    signal pipeline_reg_2_2_we : std_logic;
+    
     signal pipeline_reg_3_0 : execution_engine_pipeline_register_3_0_type;
     signal pipeline_reg_3_0_next : execution_engine_pipeline_register_3_0_type;
     signal pipeline_reg_3_0_we : std_logic;
@@ -104,6 +108,10 @@ architecture Structural of execution_engine is
     signal pipeline_reg_3_1_next : execution_engine_pipeline_register_3_1_type;
     signal pipeline_reg_3_1_we : std_logic;
     
+    signal pipeline_reg_3_2 : execution_engine_pipeline_register_3_2_type;
+    signal pipeline_reg_3_2_next : execution_engine_pipeline_register_3_2_type;
+    signal pipeline_reg_3_2_we : std_logic;
+    
     signal pipeline_reg_4_0 : execution_engine_pipeline_register_4_0_type;
     signal pipeline_reg_4_0_next : execution_engine_pipeline_register_4_0_type;
     signal pipeline_reg_4_0_we : std_logic;
@@ -111,6 +119,10 @@ architecture Structural of execution_engine is
     signal pipeline_reg_4_1 : execution_engine_pipeline_register_4_1_type;
     signal pipeline_reg_4_1_next : execution_engine_pipeline_register_4_1_type;
     signal pipeline_reg_4_1_we : std_logic;
+    
+    signal pipeline_reg_4_2 : execution_engine_pipeline_register_4_2_type;
+    signal pipeline_reg_4_2_next : execution_engine_pipeline_register_4_2_type;
+    signal pipeline_reg_4_2_we : std_logic;
 
     -- ========================================
     
@@ -139,6 +151,8 @@ architecture Structural of execution_engine is
     signal rf_rd_data_2 : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     signal rf_rd_data_3 : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     signal rf_rd_data_4 : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
+    signal rf_rd_data_5 : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
+    signal rf_rd_data_6 : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
     
     signal rf_write_en : std_logic;
     -- ===========================================
@@ -152,6 +166,8 @@ architecture Structural of execution_engine is
     signal sched_uop_out_0_valid : std_logic;
     signal sched_uop_out_1 : uop_exec_type;
     signal sched_uop_out_1_valid : std_logic;
+    signal sched_uop_out_2 : uop_exec_type;
+    signal sched_uop_out_2_valid : std_logic;
     -- ================================================
     
     -- ========== REORDER BUFFER SIGNALS ==========
@@ -160,7 +176,8 @@ architecture Structural of execution_engine is
     signal rob_head_phys_dest_reg : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
     
     signal rob_alloc_instr_tag : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
-    signal rob_pc_out : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+    signal rob_pc_out_1 : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+    signal rob_pc_out_2 : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
     
     signal rob_commit_ready : std_logic;
     signal rob_full : std_logic;
@@ -206,12 +223,15 @@ architecture Structural of execution_engine is
     
     signal cdb_request_0 : std_logic;
     signal cdb_request_1 : std_logic;
+    signal cdb_request_2 : std_logic;
     
     signal cdb_granted_0 : std_logic;
     signal cdb_granted_1 : std_logic;
+    signal cdb_granted_2 : std_logic;
     
-    signal cdb_0 : cdb_type;
-    signal cdb_1 : cdb_type;
+    signal cdb_0 : cdb_single_type;
+    signal cdb_1 : cdb_single_type;
+    signal cdb_2 : cdb_single_type;
     -- =====================================
     
     -- =========== CONTROL SIGNALS ===========
@@ -219,6 +239,7 @@ architecture Structural of execution_engine is
     signal stall_2 : std_logic;
     signal eu_0_ready : std_logic;
     signal eu_1_ready : std_logic;
+    signal eu_2_ready : std_logic;
     
     signal is_cond_branch_commit : std_logic;
     
@@ -241,6 +262,10 @@ begin
     pipeline_reg_2_1_we <= pipeline_reg_3_1_we or not pipeline_reg_2_1.valid;
     pipeline_reg_3_1_we <= pipeline_reg_4_1_we or not pipeline_reg_3_1.valid;
     pipeline_reg_4_1_we <= eu_1_ready or not pipeline_reg_4_1.valid;
+    
+    pipeline_reg_2_2_we <= pipeline_reg_3_2_we or not pipeline_reg_2_2.valid;
+    pipeline_reg_3_2_we <= pipeline_reg_4_2_we or not pipeline_reg_3_2.valid;
+    pipeline_reg_4_2_we <= eu_2_ready or not pipeline_reg_4_2.valid;
     pipeline_reg_proc : process(clk)
     begin
         if (rising_edge(clk)) then
@@ -248,18 +273,21 @@ begin
                 pipeline_reg_1.valid <= '0';
                 pipeline_reg_2_0 <= EE_PIPELINE_REG_2_0_RESET;
                 pipeline_reg_2_1 <= EE_PIPELINE_REG_2_1_RESET;
+                pipeline_reg_2_2 <= EE_PIPELINE_REG_2_2_RESET;
                 pipeline_reg_3_0 <= EE_PIPELINE_REG_3_0_RESET;
                 pipeline_reg_3_1 <= EE_PIPELINE_REG_3_1_RESET;
+                pipeline_reg_3_2 <= EE_PIPELINE_REG_3_2_RESET;
                 pipeline_reg_4_0 <= EE_PIPELINE_REG_4_0_RESET;
                 pipeline_reg_4_1 <= EE_PIPELINE_REG_4_1_RESET;
+                pipeline_reg_4_2 <= EE_PIPELINE_REG_4_2_RESET;
             else
                 if (pipeline_reg_1_we = '1') then
                     pipeline_reg_1 <= pipeline_reg_1_next;
-                elsif (stall_2 and pipeline_reg_1.valid and cdb.valid) then
-                    pipeline_reg_1.speculated_branches_mask <= pipeline_reg_1.speculated_branches_mask and not cdb.branch_mask;
+                elsif (stall_2 and pipeline_reg_1.valid and cdb.cdb_branch.valid) then
+                    pipeline_reg_1.speculated_branches_mask <= pipeline_reg_1.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
                 end if;
                 
-                if (cdb.branch_mispredicted and cdb.valid) then
+                if (cdb.cdb_branch.branch_mispredicted and cdb.cdb_branch.valid) then
                     pipeline_reg_1.valid <= '0';
                 elsif (pipeline_reg_1.valid) then
                     if (stall_2) then
@@ -294,11 +322,23 @@ begin
                 if (pipeline_reg_4_1_we = '1') then
                     pipeline_reg_4_1 <= pipeline_reg_4_1_next;
                 end if;
+                
+                if (pipeline_reg_2_2_we = '1') then
+                    pipeline_reg_2_2 <= pipeline_reg_2_2_next;
+                end if;
+                
+                if (pipeline_reg_3_2_we = '1') then
+                    pipeline_reg_3_2 <= pipeline_reg_3_2_next;
+                end if;
+                
+                if (pipeline_reg_4_2_we = '1') then
+                    pipeline_reg_4_2 <= pipeline_reg_4_2_next;
+                end if;
             end if;
         end if;
     end process;
     
-    process(next_uop, rf_phys_dest_reg_addr)
+    process(next_uop, rf_phys_dest_reg_addr, cdb.cdb_branch)
     begin
         pipeline_reg_1_next.pc <= next_uop.pc;
         pipeline_reg_1_next.operation_type <= next_uop.operation_type;
@@ -308,39 +348,53 @@ begin
         pipeline_reg_1_next.arch_dest_reg_addr <= next_uop.arch_dest_reg_addr;
         pipeline_reg_1_next.phys_dest_reg_addr <= rf_phys_dest_reg_addr;
         pipeline_reg_1_next.branch_mask <= next_uop.branch_mask;
-        pipeline_reg_1_next.speculated_branches_mask <= next_uop.speculated_branches_mask when cdb.valid = '0' else next_uop.speculated_branches_mask and not cdb.branch_mask;
+        pipeline_reg_1_next.speculated_branches_mask <= next_uop.speculated_branches_mask when cdb.cdb_branch.valid = '0' else next_uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
         pipeline_reg_1_next.branch_predicted_outcome <= next_uop.branch_predicted_outcome;
     end process;
     
-    process(sched_uop_out_0, sched_uop_out_0_valid, cdb, i_branch_mispredict_detected)
+    process(sched_uop_out_0, sched_uop_out_0_valid, cdb.cdb_branch, i_branch_mispredict_detected)
     begin
         pipeline_reg_2_0_next.uop <= sched_uop_out_0;
-        pipeline_reg_2_0_next.uop.speculated_branches_mask <= sched_uop_out_0.speculated_branches_mask when cdb.valid = '0' else sched_uop_out_0.speculated_branches_mask and not cdb.branch_mask;
-        pipeline_reg_2_0_next.valid <= '1' when sched_uop_out_0_valid = '1' and not ((sched_uop_out_0.speculated_branches_mask and cdb.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
+        pipeline_reg_2_0_next.uop.speculated_branches_mask <= sched_uop_out_0.speculated_branches_mask when cdb.cdb_branch.valid = '0' else sched_uop_out_0.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+        pipeline_reg_2_0_next.valid <= '1' when sched_uop_out_0_valid = '1' and not ((sched_uop_out_0.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
     end process;
     
-    process(sched_uop_out_1, sched_uop_out_1_valid, cdb, i_branch_mispredict_detected)
+    process(sched_uop_out_1, sched_uop_out_1_valid, cdb.cdb_branch, i_branch_mispredict_detected)
     begin
         pipeline_reg_2_1_next.uop <= sched_uop_out_1;
-        pipeline_reg_2_1_next.uop.speculated_branches_mask <= sched_uop_out_1.speculated_branches_mask when cdb.valid = '0' else sched_uop_out_1.speculated_branches_mask and not cdb.branch_mask;
-        pipeline_reg_2_1_next.valid <= '1' when sched_uop_out_1_valid = '1' and not ((sched_uop_out_1.speculated_branches_mask and cdb.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
+        pipeline_reg_2_1_next.uop.speculated_branches_mask <= sched_uop_out_1.speculated_branches_mask when cdb.cdb_branch.valid = '0' else sched_uop_out_1.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+        pipeline_reg_2_1_next.valid <= '1' when sched_uop_out_1_valid = '1' and not ((sched_uop_out_1.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
     end process;
     
-    process(pipeline_reg_2_0, cdb, i_branch_mispredict_detected)
+    process(sched_uop_out_2, sched_uop_out_2_valid, cdb.cdb_branch, i_branch_mispredict_detected)
+    begin
+        pipeline_reg_2_2_next.uop <= sched_uop_out_2;
+        pipeline_reg_2_2_next.uop.speculated_branches_mask <= sched_uop_out_2.speculated_branches_mask when cdb.cdb_branch.valid = '0' else sched_uop_out_2.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+        pipeline_reg_2_2_next.valid <= '1' when sched_uop_out_2_valid = '1' and not ((sched_uop_out_2.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
+    end process;
+    
+    process(pipeline_reg_2_0, cdb.cdb_branch, i_branch_mispredict_detected)
     begin
         pipeline_reg_3_0_next.uop <= pipeline_reg_2_0.uop;
-        pipeline_reg_3_0_next.uop.speculated_branches_mask <= pipeline_reg_2_0.uop.speculated_branches_mask when cdb.valid = '0' else pipeline_reg_2_0.uop.speculated_branches_mask and not cdb.branch_mask;
-        pipeline_reg_3_0_next.valid <= '1' when pipeline_reg_2_0.valid = '1' and not ((pipeline_reg_2_0.uop.speculated_branches_mask and cdb.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
+        pipeline_reg_3_0_next.uop.speculated_branches_mask <= pipeline_reg_2_0.uop.speculated_branches_mask when cdb.cdb_branch.valid = '0' else pipeline_reg_2_0.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+        pipeline_reg_3_0_next.valid <= '1' when pipeline_reg_2_0.valid = '1' and not ((pipeline_reg_2_0.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
     end process;
     
-    process(pipeline_reg_2_1, cdb, i_branch_mispredict_detected)
+    process(pipeline_reg_2_1, cdb.cdb_branch, i_branch_mispredict_detected)
     begin
         pipeline_reg_3_1_next.uop <= pipeline_reg_2_1.uop;
-        pipeline_reg_3_1_next.uop.speculated_branches_mask <= pipeline_reg_2_1.uop.speculated_branches_mask when cdb.valid = '0' else pipeline_reg_2_1.uop.speculated_branches_mask and not cdb.branch_mask;
-        pipeline_reg_3_1_next.valid <= '1' when pipeline_reg_2_1.valid = '1' and not ((pipeline_reg_2_1.uop.speculated_branches_mask and cdb.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
+        pipeline_reg_3_1_next.uop.speculated_branches_mask <= pipeline_reg_2_1.uop.speculated_branches_mask when cdb.cdb_branch.valid = '0' else pipeline_reg_2_1.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+        pipeline_reg_3_1_next.valid <= '1' when pipeline_reg_2_1.valid = '1' and not ((pipeline_reg_2_1.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
     end process;
     
-    process(pipeline_reg_3_0, cdb, i_branch_mispredict_detected, rf_rd_data_1, rf_rd_data_2, rob_pc_out)
+    process(pipeline_reg_2_2, cdb.cdb_branch, i_branch_mispredict_detected)
+    begin
+        pipeline_reg_3_2_next.uop <= pipeline_reg_2_2.uop;
+        pipeline_reg_3_2_next.uop.speculated_branches_mask <= pipeline_reg_2_2.uop.speculated_branches_mask when cdb.cdb_branch.valid = '0' else pipeline_reg_2_2.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+        pipeline_reg_3_2_next.valid <= '1' when pipeline_reg_2_2.valid = '1' and not ((pipeline_reg_2_2.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
+    end process;
+    
+    process(pipeline_reg_3_0, cdb.cdb_branch, i_branch_mispredict_detected, rf_rd_data_1, rf_rd_data_2, rob_pc_out_1)
     begin
         pipeline_reg_4_0_next.eu_input.instr_tag <= pipeline_reg_3_0.uop.instr_tag;
         pipeline_reg_4_0_next.eu_input.operand_1 <= rf_rd_data_1;
@@ -352,17 +406,17 @@ begin
         end if;
         
         pipeline_reg_4_0_next.eu_input.immediate <= pipeline_reg_3_0.uop.immediate;
-        pipeline_reg_4_0_next.eu_input.pc <= rob_pc_out;
+        pipeline_reg_4_0_next.eu_input.pc <= rob_pc_out_1;
         pipeline_reg_4_0_next.eu_input.phys_dest_reg_addr <= pipeline_reg_3_0.uop.phys_dest_reg_addr;
         pipeline_reg_4_0_next.eu_input.operation_select <= pipeline_reg_3_0.uop.operation_select;
-        pipeline_reg_4_0_next.eu_input.branch_mask <= pipeline_reg_3_0.uop.branch_mask;
-        pipeline_reg_4_0_next.eu_input.speculated_branches_mask <= pipeline_reg_3_0.uop.speculated_branches_mask when cdb.valid = '0' else pipeline_reg_3_0.uop.speculated_branches_mask and not cdb.branch_mask;
-        pipeline_reg_4_0_next.eu_input.branch_predicted_outcome <= bpt_branch_predicted_outcome;
-        pipeline_reg_4_0_next.eu_input.branch_predicted_target_pc <= bpt_branch_predicted_target_pc;
-        pipeline_reg_4_0_next.valid <= '1' when pipeline_reg_3_0.valid = '1' and not ((pipeline_reg_3_0.uop.speculated_branches_mask and cdb.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
+        --pipeline_reg_4_0_next.eu_input.branch_mask <= pipeline_reg_3_0.uop.branch_mask;
+        pipeline_reg_4_0_next.eu_input.speculated_branches_mask <= pipeline_reg_3_0.uop.speculated_branches_mask when cdb.cdb_branch.valid = '0' else pipeline_reg_3_0.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+        --pipeline_reg_4_0_next.eu_input.branch_predicted_outcome <= bpt_branch_predicted_outcome;
+        --pipeline_reg_4_0_next.eu_input.branch_predicted_target_pc <= bpt_branch_predicted_target_pc;
+        pipeline_reg_4_0_next.valid <= '1' when pipeline_reg_3_0.valid = '1' and not ((pipeline_reg_3_0.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
     end process;
 
-    process(pipeline_reg_3_1, cdb, i_branch_mispredict_detected, rf_rd_data_3, rf_rd_data_4)
+    process(pipeline_reg_3_1, cdb.cdb_branch, i_branch_mispredict_detected, rf_rd_data_3, rf_rd_data_4)
     begin
         pipeline_reg_4_1_next.eu_input.instr_tag <= pipeline_reg_3_1.uop.instr_tag;
         pipeline_reg_4_1_next.eu_input.operand_1 <= rf_rd_data_3;
@@ -372,8 +426,24 @@ begin
         pipeline_reg_4_1_next.eu_input.stq_tag <= pipeline_reg_3_1.uop.stq_tag;
         pipeline_reg_4_1_next.eu_input.ldq_tag <= pipeline_reg_3_1.uop.ldq_tag;
         pipeline_reg_4_1_next.eu_input.operation_select <= pipeline_reg_3_1.uop.operation_select;
-        pipeline_reg_4_1_next.eu_input.speculated_branches_mask <= pipeline_reg_3_1.uop.speculated_branches_mask when cdb.valid = '0' else pipeline_reg_3_1.uop.speculated_branches_mask and not cdb.branch_mask;
-        pipeline_reg_4_1_next.valid <= '1' when pipeline_reg_3_1.valid = '1' and not ((pipeline_reg_3_1.uop.speculated_branches_mask and cdb.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
+        pipeline_reg_4_1_next.eu_input.speculated_branches_mask <= pipeline_reg_3_1.uop.speculated_branches_mask when cdb.cdb_branch.valid = '0' else pipeline_reg_3_1.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+        pipeline_reg_4_1_next.valid <= '1' when pipeline_reg_3_1.valid = '1' and not ((pipeline_reg_3_1.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
+    end process;
+    
+    process(pipeline_reg_3_2, cdb.cdb_branch, i_branch_mispredict_detected, rf_rd_data_5, rf_rd_data_6, rob_pc_out_2)
+    begin
+        pipeline_reg_4_2_next.eu_input.instr_tag <= pipeline_reg_3_2.uop.instr_tag;
+        pipeline_reg_4_2_next.eu_input.operand_1 <= rf_rd_data_5;
+        pipeline_reg_4_2_next.eu_input.operand_2 <= rf_rd_data_6;
+        pipeline_reg_4_2_next.eu_input.immediate <= pipeline_reg_3_2.uop.immediate;
+        pipeline_reg_4_2_next.eu_input.pc <= rob_pc_out_2;
+        pipeline_reg_4_2_next.eu_input.phys_dest_reg_addr <= pipeline_reg_3_2.uop.phys_dest_reg_addr;
+        pipeline_reg_4_2_next.eu_input.operation_select <= pipeline_reg_3_2.uop.operation_select;
+        pipeline_reg_4_2_next.eu_input.branch_mask <= pipeline_reg_3_2.uop.branch_mask;
+        pipeline_reg_4_2_next.eu_input.speculated_branches_mask <= pipeline_reg_3_2.uop.speculated_branches_mask when cdb.cdb_branch.valid = '0' else pipeline_reg_3_2.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+        pipeline_reg_4_2_next.eu_input.branch_predicted_outcome <= bpt_branch_predicted_outcome;
+        pipeline_reg_4_2_next.eu_input.branch_predicted_target_pc <= bpt_branch_predicted_target_pc;
+        pipeline_reg_4_2_next.valid <= '1' when pipeline_reg_3_2.valid = '1' and not ((pipeline_reg_3_2.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
     end process;
     -- ========================================================================================
     -- ========================================================================================
@@ -414,7 +484,7 @@ begin
     sq_retire_tag_valid <= '1' when rob_head_operation_type = OPTYPE_STORE and rob_commit_ready = '1' else '0';
     lq_retire_en <= '1' when rob_head_operation_type = OPTYPE_LOAD and rob_commit_ready = '1' else '0';
 
-    i_branch_mispredict_detected <= cdb.branch_mispredicted and cdb.valid;
+    i_branch_mispredict_detected <= cdb.cdb_branch.branch_mispredicted and cdb.cdb_branch.valid;
     -- Will need to take SH, SB, LH, LB into consideration in the future
     next_uop_store <= '1' when (pipeline_reg_1.operation_type = OPTYPE_STORE) else '0';
     next_uop_load <= '1' when (pipeline_reg_1.operation_type = OPTYPE_LOAD) else '0';
@@ -433,10 +503,10 @@ begin
                                        branch_predicted_pc_w => fe_branch_predicted_pc,
                                        branch_prediction_w => fe_branch_prediction,
                                        
-                                       branch_mask_r => pipeline_reg_2_0.uop.branch_mask,
+                                       branch_mask_r => pipeline_reg_2_2.uop.branch_mask,
                                        branch_predicted_pc_r => bpt_branch_predicted_target_pc,
                                        branch_prediction_r => bpt_branch_predicted_outcome,
-                                       rd_en => pipeline_reg_3_0_we,
+                                       rd_en => pipeline_reg_3_2_we,
                                        
                                        clk => clk);
     
@@ -545,8 +615,7 @@ begin
                             clk => clk,
                             reset => reset);
     end generate;
-    
-    rf_write_en <= '1' when cdb.valid = '1' and (cdb.branch_mask = BRANCH_MASK_ZERO or cdb.is_jalr = '1') else '0';
+
     register_file : entity work.register_file(rtl)
                     generic map(REG_DATA_WIDTH_BITS => CPU_DATA_WIDTH_BITS,
                                 REGFILE_ENTRIES => PHYS_REGFILE_ENTRIES)
@@ -559,8 +628,8 @@ begin
                              rd_2_addr => pipeline_reg_2_0.uop.phys_src_reg_2_addr,     -- Operand for ALU operations
                              rd_3_addr => pipeline_reg_2_1.uop.phys_src_reg_2_addr,     -- Operand for memory data read operations
                              rd_4_addr => pipeline_reg_2_1.uop.phys_src_reg_1_addr,     -- Operand for memory address operations
-                             wr_addr => cdb.phys_dest_reg,
-                             
+                             rd_5_addr => pipeline_reg_2_2.uop.phys_src_reg_1_addr,     -- Operand for branch operations
+                             rd_6_addr => pipeline_reg_2_2.uop.phys_src_reg_2_addr,     -- Operand for branch operations
                              
                              alloc_reg_addr => rf_phys_dest_reg_addr,
                              alloc_reg_addr_v => raa_get_en,
@@ -574,12 +643,13 @@ begin
                              rd_2_data => rf_rd_data_2,
                              rd_3_data => rf_rd_data_3,
                              rd_4_data => rf_rd_data_4,
-                             wr_data => cdb.data,
+                             rd_5_data => rf_rd_data_5,
+                             rd_6_data => rf_rd_data_6,
                              
                              -- CONTROL
                              rd_1_en => pipeline_reg_3_0_we,
                              rd_2_en => pipeline_reg_3_1_we,
-                             en => rf_write_en,
+                             rd_3_en => pipeline_reg_3_2_we,
                              reset => reset,
                              clk => clk);
                              
@@ -603,9 +673,13 @@ begin
                               write_1_en => not stall_2 and pipeline_reg_1.valid and not i_branch_mispredict_detected,
                               commit_1_en => not i_branch_mispredict_detected,       -- Disable commit at the same time as a mispredict. Causes issues with the register renaming subsystem.
 
-                              rob_entry_addr => pipeline_reg_2_0.uop.instr_tag,
-                              pc_rd_en => pipeline_reg_3_0_we,
-                              pc_1_out => rob_pc_out,
+                              rob_entry_addr_1 => pipeline_reg_2_0.uop.instr_tag,
+                              pc_rd_en_1 => pipeline_reg_3_0_we,
+                              pc_1_out => rob_pc_out_1,
+                              
+                              rob_entry_addr_2 => pipeline_reg_2_2.uop.instr_tag,
+                              pc_rd_en_2 => pipeline_reg_3_2_we,
+                              pc_2_out => rob_pc_out_2,
 
                               head_valid => rob_commit_ready,
                               full => rob_full,
@@ -628,9 +702,12 @@ begin
                                    uop_out_0_valid => sched_uop_out_0_valid,
                                    uop_out_1 => sched_uop_out_1,
                                    uop_out_1_valid => sched_uop_out_1_valid,
+                                   uop_out_2 => sched_uop_out_2,
+                                   uop_out_2_valid => sched_uop_out_2_valid,
                                   
                                    dispatch_en(0) => pipeline_reg_2_0_we,
                                    dispatch_en(1) => pipeline_reg_2_1_we,
+                                   dispatch_en(2) => pipeline_reg_2_2_we,
                                    full => sched_full,
                                    
                                    clk => clk,
@@ -639,7 +716,9 @@ begin
     -- INTEGER DIV (WIP)
     -- INTEGER MUL (WIP)
     execution_unit_0 : entity work.execution_unit_0_new(rtl)
-                               port map(eu_in_0 => pipeline_reg_4_0.eu_input,
+                               port map(cdb_in => cdb,
+                               
+                                        eu_in_0 => pipeline_reg_4_0.eu_input,
                                
                                         cdb => cdb_0,
                                         cdb_request => cdb_request_0,
@@ -650,7 +729,8 @@ begin
                                         
                                         reset => reset,
                                         clk => clk);
-                                        
+                      
+    -- LOAD-STORE ADDRESS/DATA GEN                  
     execution_unit_1 : entity work.execution_unit_1(rtl)
                        port map(cdb => cdb,
                                 eu_in_0 => pipeline_reg_4_1.eu_input,
@@ -669,6 +749,20 @@ begin
                                 
                                 reset => reset,
                                 clk => clk);
+    
+    -- BRANCH           
+    execution_unit_2 : entity work.execution_unit_2(rtl)
+                       port map(eu_in_0 => pipeline_reg_4_2.eu_input,
+                               
+                                cdb => cdb_2,
+                                cdb_request => cdb_request_2,
+                                cdb_granted => cdb_granted_2,
+                                        
+                                valid => pipeline_reg_4_2.valid,
+                                ready => eu_2_ready,
+                                        
+                                reset => reset,
+                                clk => clk); 
                                         
     load_store_unit : entity work.load_store_unit_cache(rtl)
                       generic map(SQ_ENTRIES => SQ_ENTRIES,
@@ -739,14 +833,28 @@ begin
     lq_dest_tag <= pipeline_reg_1.phys_dest_reg_addr;
     lq_enqueue_en <= '1' when pipeline_reg_1.operation_type = OPTYPE_LOAD and pipeline_reg_1.valid = '1' and stall_2 = '0' and i_branch_mispredict_detected = '0' else '0';
 
-    cdb_out <= cdb;
+    cdb.cdb_branch <= cdb_2;
+    cdb_granted_2 <= '1';
 
-    cdb <= cdb_1 when cdb_granted_1 = '1' else
-           cdb_0;
-
-    cdb_granted_0 <= cdb_request_0 and (not cdb_request_1);
+    process(all)
+    begin
+        if (cdb_request_1 = '1') then
+            cdb_granted_0 <= '0';
+            cdb_granted_1 <= '1';
+            
+            cdb.cdb_data <= cdb_1;
+        elsif (cdb_request_0 = '1') then
+            cdb_granted_0 <= '1';
+            cdb_granted_1 <= '0';
+            
+            cdb.cdb_data <= cdb_0;
+        else
+            cdb_granted_0 <= '0';
+            cdb_granted_1 <= '0';
+            
+            cdb.cdb_data <= cdb_0;
+        end if;
+    end process;
     
-    cdb_granted_1 <= cdb_request_1;
-    --cdb_granted_1 <= '0';
-   
+    cdb_out <= cdb;    
 end structural;
