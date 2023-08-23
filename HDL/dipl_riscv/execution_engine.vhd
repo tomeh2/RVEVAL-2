@@ -678,8 +678,9 @@ begin
                              rd_5_addr => pipeline_reg_2_2.uop.phys_src_reg_1_addr,     -- Operand for branch operations
                              rd_6_addr => pipeline_reg_2_2.uop.phys_src_reg_2_addr,     -- Operand for branch operations
                              
-                             alloc_reg_addr => rf_phys_dest_reg_addr,
-                             alloc_reg_addr_v => raa_get_en,
+                             uop_in_phys_dest_reg => rf_phys_dest_reg_addr,
+                             uop_in_is_load => '1' when next_uop.operation_type = OPTYPE_LOAD else '0',
+                             uop_in_valid => raa_get_en,
                              
                              reg_1_valid_bit_addr => rf_phys_src_reg_1_addr,
                              reg_2_valid_bit_addr => rf_phys_src_reg_2_addr,

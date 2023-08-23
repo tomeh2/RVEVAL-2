@@ -47,8 +47,10 @@ entity register_file is
         rd_5_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
         rd_6_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
         
-        alloc_reg_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
-        alloc_reg_addr_v : in std_logic;
+        uop_in_phys_dest_reg : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
+        uop_in_lq_entry_index : in std_logic_vector(integer(ceil(log2(real(LQ_ENTRIES)))) - 1 downto 0);
+        uop_in_is_load : in std_logic;
+        uop_in_valid : in std_logic;
         
         reg_1_valid_bit_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
         reg_2_valid_bit_addr : in std_logic_vector(integer(ceil(log2(real(REGFILE_ENTRIES)))) - 1 downto 0);
@@ -87,6 +89,10 @@ architecture rtl of register_file is
     signal reg_file : reg_file_type := (others => (others => '0'));
     
     signal reg_file_valid_bits : std_logic_vector(REGFILE_ENTRIES - 1 downto 0);
+    
+    -- Holds dependencies of instructions on speculative loads
+    type reg_file_spec_bits_type is array (REGFILE_ENTRIES - 1 downto 0) of std_logic_vector(LQ_ENTRIES - 1 downto 0);
+    signal reg_file_speculative_bits : reg_file_spec_bits_type;
     -- ==================================
 begin
     
@@ -135,8 +141,12 @@ begin
                     reg_file_valid_bits(to_integer(unsigned(cdb.cdb_data.phys_dest_reg))) <= '1';
                 end if;
             
-                if (alloc_reg_addr_v = '1' and alloc_reg_addr /= PHYS_REG_TAG_ZERO) then
-                    reg_file_valid_bits(to_integer(unsigned(alloc_reg_addr))) <= '0';
+                if (uop_in_valid = '1' and uop_in_phys_dest_reg /= PHYS_REG_TAG_ZERO) then
+                    reg_file_valid_bits(to_integer(unsigned(uop_in_phys_dest_reg))) <= '0';
+                    
+                    --if (uop_in_is_load = '1') then
+                    --    reg_file_speculative_bits(to_integer(unsigned(uop_in_phys_dest_reg))) <= '1';
+                    --end if;
                 end if; 
             end if;
         end if;

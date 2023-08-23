@@ -46,8 +46,8 @@ package pkg_cpu is
     -- ========================= CAN BE MODIFIED =========================
     constant SCHEDULER_ENTRIES : integer range 1 to 1023 := 8;
     constant REORDER_BUFFER_ENTRIES : integer := 16;
-    constant SQ_ENTRIES : integer := 4;
-    constant LQ_ENTRIES : integer := 4;
+    constant SQ_ENTRIES : integer := 8;
+    constant LQ_ENTRIES : integer := 8;
     constant DECODED_INSTR_QUEUE_ENTRIES : integer := 4;
     
     constant BRANCHING_DEPTH : integer := 4;            -- How many branches this CPU is capable of speculating against. For ex. 4 Means 4 cond. branch instructions before further fetching is halted
@@ -219,6 +219,35 @@ package pkg_cpu is
         predicted_outcome : std_logic;
     end record;
     
+    -- ROB Types
+    type rob_head_type is record
+        operation_type : std_logic_vector(OPERATION_TYPE_BITS - 1 downto 0);
+        arch_dest_reg : std_logic_vector(ARCH_REGFILE_ADDR_BITS - 1 downto 0);
+        phys_dest_reg : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
+        sq_tag : std_logic_vector(STORE_QUEUE_TAG_BITS - 1 downto 0);
+        retire : std_logic;
+    end record;
+    
+    -- LSU Types
+    --type lsu_spec_lq_entry_type is record
+        
+    --end record;
+    
+    type lsu_spec_sq_entry_type is record
+        address : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        address_valid : std_logic;
+        data : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
+        data_valid : std_logic;
+        is_cmo : std_logic;
+        cmo_opcode : std_logic_vector(1 downto 0);
+        size : std_logic_vector(1 downto 0);
+        executed : std_logic;                
+        retired : std_logic;                
+    end record;
+    
+    constant SQ_TAG_BITS : integer := integer(ceil(log2(real(SQ_ENTRIES))));
+    constant LQ_TAG_BITS : integer := integer(ceil(log2(real(LQ_ENTRIES))));
+    
     -- OPTYPE Definitions
     constant OPTYPE_INTEGER : std_logic_vector(2 downto 0) := "000";
     constant OPTYPE_BRANCH : std_logic_vector(2 downto 0) := "001";
@@ -243,6 +272,9 @@ package pkg_cpu is
     -- Load-Store Unit Operation Definitions
     constant LSU_OP_LW : std_logic_vector(7 downto 0) := "00000000";
     constant LSU_OP_SW : std_logic_vector(7 downto 0) := "10000010";    
+    constant LSU_DATA_SIZE_BYTE : std_logic_vector(1 downto 0) := "00";
+    constant LSU_DATA_SIZE_HALFWORD : std_logic_vector(1 downto 0) := "01";
+    constant LSU_DATA_SIZE_WORD : std_logic_vector(1 downto 0) := "10";
     
     -- Integer EU Operation Definitions
     constant ALU_OP_ADD : std_logic_vector(3 downto 0) := "0000";
