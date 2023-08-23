@@ -149,8 +149,12 @@ begin
         if (rising_edge(clk)) then
             if (reset = '1') then
                 rob_tail_counter_reg <= COUNTER_ONE;
-            elsif ((write_1_en = '1' and rob_full = '0') or (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1')) then
-                rob_tail_counter_reg <= rob_tail_counter_next;
+            else
+                if (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') then
+                    rob_tail_counter_reg <= rob_tail_mispredict_recovery_memory(branch_mask_to_int(cdb.cdb_branch.branch_mask));
+                elsif (write_1_en = '1' and rob_full = '0') then
+                    rob_tail_counter_reg <= rob_tail_counter_next;
+                end if;
             end if;
         end if;
     end process;
@@ -173,10 +177,8 @@ begin
         else
             rob_head_counter_next <= std_logic_vector(unsigned(rob_head_counter_reg) + 1);
         end if;
-        
-        if (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') then        -- Clear all instructions after branch in ROB
-            rob_tail_counter_next <= rob_tail_mispredict_recovery_memory(branch_mask_to_int(cdb.cdb_branch.branch_mask));
-        elsif (unsigned(rob_tail_counter_reg) = REORDER_BUFFER_ENTRIES - 1) then
+
+        if (unsigned(rob_tail_counter_reg) = REORDER_BUFFER_ENTRIES - 1) then
             rob_tail_counter_next <= COUNTER_ONE;
         else
             rob_tail_counter_next <= std_logic_vector(unsigned(rob_tail_counter_reg) + 1);
@@ -241,7 +243,7 @@ begin
     pc_1_out <= rob_head_data_2(PC_START downto PC_END);
     pc_2_out <= rob_head_data_3(PC_START downto PC_END);
     
-    rob_full <= '1' when (rob_tail_counter_next = rob_head_counter_reg) and not (cdb.cdb_branch.branch_mispredicted = '1' and cdb.cdb_branch.valid = '1') else '0';
+    rob_full <= '1' when (rob_tail_counter_next = rob_head_counter_reg) else '0';
     rob_empty <= '1' when rob_head_counter_reg = rob_tail_counter_reg else '0';
     rob_empty_delayed <= rob_empty when rising_edge(clk);
 

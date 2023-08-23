@@ -96,7 +96,7 @@ begin
         -- Writing to registers
         if (rising_edge(clk)) then
             if (cdb.cdb_branch.valid = '1' and cdb.cdb_branch.phys_dest_reg /= REG_ADDR_ZERO) then
-                reg_file(to_integer(unsigned(cdb.cdb_branch.phys_dest_reg))) <= cdb.cdb_branch.data;
+               reg_file(to_integer(unsigned(cdb.cdb_branch.phys_dest_reg))) <= cdb.cdb_branch.data;
             end if;
         
             if (cdb.cdb_data.valid = '1' and cdb.cdb_data.phys_dest_reg /= REG_ADDR_ZERO) then

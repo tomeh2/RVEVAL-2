@@ -55,6 +55,7 @@ entity unified_scheduler is
         -- CONTROL
         dispatch_en : in std_logic_vector(OUTPUT_PORT_COUNT - 1 downto 0);
         full : out std_logic;
+        empty : out std_logic;
         
         clk : in std_logic;
         reset : in std_logic
@@ -89,14 +90,18 @@ architecture rtl of unified_scheduler is
     signal sched_operand_1_ready : std_logic;
     signal sched_operand_2_ready : std_logic;
 begin
-    sched_full_proc : process(sched_entries)
-        variable temp : std_logic;
+    sched_empty_full_proc : process(sched_entries)
+        variable temp_f : std_logic;
+        variable temp_e : std_logic;
     begin
-        temp := '1';
+        temp_f := '1';
+        temp_e := '1';
         for i in 0 to SCHEDULER_ENTRIES - 1 loop
-            temp := temp and sched_entries(i).valid;
+            temp_f := temp_f and sched_entries(i).valid;
+            temp_e := temp_e and not sched_entries(i).valid;
         end loop;
-        full <= temp;
+        full <= temp_f;
+        empty <= temp_e;
     end process;
 
     -- Generates a vector containing all busy bits of the reservation station

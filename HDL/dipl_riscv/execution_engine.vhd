@@ -253,7 +253,7 @@ begin
     --                                PIPELINE REGISTER LOGIC
     -- ========================================================================================
     
-    pipeline_reg_1_we <= (not stall_2 and fifo_ready and not raa_empty) or (not pipeline_reg_1.valid and not raa_empty and fifo_ready);
+    pipeline_reg_1_we <= ((not stall_2 and fifo_ready and not raa_empty) or (not pipeline_reg_1.valid and not raa_empty and fifo_ready)) and not i_branch_mispredict_detected;
     
     pipeline_reg_2_0_we <= pipeline_reg_3_0_we or not pipeline_reg_2_0.valid;
     pipeline_reg_3_0_we <= pipeline_reg_4_0_we or not pipeline_reg_3_0.valid;
@@ -301,26 +301,75 @@ begin
                 
                 if (pipeline_reg_2_0_we = '1') then
                     pipeline_reg_2_0 <= pipeline_reg_2_0_next;
+                else
+                    if (cdb.cdb_branch.valid = '1' and pipeline_reg_2_0.valid = '1') then
+                        pipeline_reg_2_0.uop.speculated_branches_mask <= pipeline_reg_2_0.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+                    end if;
+                    
+                    if (cdb.cdb_branch.valid = '1' and cdb.cdb_branch.branch_mispredicted = '1' and (pipeline_reg_2_0.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO) then
+                        pipeline_reg_2_0.valid <= '0';
+                    end if;
                 end if;
                 
                 if (pipeline_reg_3_0_we = '1') then
                     pipeline_reg_3_0 <= pipeline_reg_3_0_next;
+                    
+                else
+                    if (cdb.cdb_branch.valid = '1' and pipeline_reg_3_0.valid = '1') then
+                        pipeline_reg_3_0.uop.speculated_branches_mask <= pipeline_reg_3_0.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+                    end if;
+                    
+                    if (cdb.cdb_branch.valid = '1' and cdb.cdb_branch.branch_mispredicted = '1' and (pipeline_reg_3_0.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO) then
+                        pipeline_reg_3_0.valid <= '0';
+                    end if;
                 end if;
                 
                 if (pipeline_reg_4_0_we = '1') then
                     pipeline_reg_4_0 <= pipeline_reg_4_0_next;
+                else
+                    if (cdb.cdb_branch.valid = '1' and pipeline_reg_4_0.valid = '1') then
+                        pipeline_reg_4_0.eu_input.speculated_branches_mask <= pipeline_reg_4_0.eu_input.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+                    end if; 
+                    
+                    if (cdb.cdb_branch.valid = '1' and cdb.cdb_branch.branch_mispredicted = '1' and (pipeline_reg_4_0.eu_input.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO) then
+                        pipeline_reg_4_0.valid <= '0';
+                    end if;
                 end if;
                 
                 if (pipeline_reg_2_1_we = '1') then
                     pipeline_reg_2_1 <= pipeline_reg_2_1_next;
+                else
+                    if (cdb.cdb_branch.valid = '1' and pipeline_reg_2_1.valid = '1') then
+                        pipeline_reg_2_1.uop.speculated_branches_mask <= pipeline_reg_2_1.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+                    end if;
+                    
+                    if (cdb.cdb_branch.valid = '1' and cdb.cdb_branch.branch_mispredicted = '1' and (pipeline_reg_2_1.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO) then
+                        pipeline_reg_2_1.valid <= '0';
+                    end if;
                 end if;
                 
                 if (pipeline_reg_3_1_we = '1') then
                     pipeline_reg_3_1 <= pipeline_reg_3_1_next;
+                else
+                    if (cdb.cdb_branch.valid = '1' and pipeline_reg_3_1.valid = '1') then
+                        pipeline_reg_3_1.uop.speculated_branches_mask <= pipeline_reg_3_1.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+                    end if;
+                    
+                    if (cdb.cdb_branch.valid = '1' and cdb.cdb_branch.branch_mispredicted = '1' and (pipeline_reg_3_1.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO) then
+                        pipeline_reg_3_1.valid <= '0';
+                    end if;
                 end if;
                 
                 if (pipeline_reg_4_1_we = '1') then
                     pipeline_reg_4_1 <= pipeline_reg_4_1_next;
+                else
+                    if (cdb.cdb_branch.valid = '1' and pipeline_reg_4_1.valid = '1') then
+                        pipeline_reg_4_1.eu_input.speculated_branches_mask <= pipeline_reg_4_1.eu_input.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
+                    end if;
+                    
+                    if (cdb.cdb_branch.valid = '1' and cdb.cdb_branch.branch_mispredicted = '1' and (pipeline_reg_4_1.eu_input.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO) then
+                        pipeline_reg_4_1.valid <= '0';
+                    end if;
                 end if;
                 
                 if (pipeline_reg_2_2_we = '1') then
@@ -409,10 +458,8 @@ begin
         pipeline_reg_4_0_next.eu_input.pc <= rob_pc_out_1;
         pipeline_reg_4_0_next.eu_input.phys_dest_reg_addr <= pipeline_reg_3_0.uop.phys_dest_reg_addr;
         pipeline_reg_4_0_next.eu_input.operation_select <= pipeline_reg_3_0.uop.operation_select;
-        --pipeline_reg_4_0_next.eu_input.branch_mask <= pipeline_reg_3_0.uop.branch_mask;
         pipeline_reg_4_0_next.eu_input.speculated_branches_mask <= pipeline_reg_3_0.uop.speculated_branches_mask when cdb.cdb_branch.valid = '0' else pipeline_reg_3_0.uop.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
-        --pipeline_reg_4_0_next.eu_input.branch_predicted_outcome <= bpt_branch_predicted_outcome;
-        --pipeline_reg_4_0_next.eu_input.branch_predicted_target_pc <= bpt_branch_predicted_target_pc;
+
         pipeline_reg_4_0_next.valid <= '1' when pipeline_reg_3_0.valid = '1' and not ((pipeline_reg_3_0.uop.speculated_branches_mask and cdb.cdb_branch.branch_mask) /= BRANCH_MASK_ZERO and i_branch_mispredict_detected = '1') else '0';
     end process;
 
@@ -480,7 +527,7 @@ begin
     next_uop_exec.speculated_branches_mask <= pipeline_reg_1.speculated_branches_mask;
 
     next_uop_init_commit_ready <= '1' when pipeline_reg_1.operation_type = OPTYPE_STORE else '0';
-    --sq_retire_tag_valid <= '1' when rob_head_operation_type = OP_TYPE_STORE and rob_commit_ready = '1' else '0';
+
     sq_retire_tag_valid <= '1' when rob_head_operation_type = OPTYPE_STORE and rob_commit_ready = '1' else '0';
     lq_retire_en <= '1' when rob_head_operation_type = OPTYPE_LOAD and rob_commit_ready = '1' else '0';
 

@@ -480,7 +480,9 @@ begin
                 
                 load_data_reg <= (others => '0');
             else
-                if ((sq_enqueue_en = '1' and i_sq_full = '0') or (cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1')) then
+                if (cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1') then
+                    sq_tail_counter_reg <= sq_tail_mispredict_recovery_memory(branch_mask_to_int(cdb_in.cdb_branch.branch_mask));
+                elsif (sq_enqueue_en = '1' and i_sq_full = '0') then
                     sq_tail_counter_reg <= sq_tail_counter_next;
                 end if;
                 
@@ -488,7 +490,9 @@ begin
                     sq_head_counter_reg <= sq_head_counter_next;
                 end if;
                 
-                if ((lq_enqueue_en = '1' and i_lq_full = '0') or (cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1')) then
+                if ((cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1')) then
+                    lq_tail_counter_reg <= lq_tail_mispredict_recovery_memory(branch_mask_to_int(cdb_in.cdb_branch.branch_mask));
+                elsif (lq_enqueue_en = '1' and i_lq_full = '0') then
                     lq_tail_counter_reg <= lq_tail_counter_next;
                 end if;
                 
@@ -506,15 +510,13 @@ begin
     sq_head_counter_next <= (others => '0') when sq_head_counter_reg = SQ_ENTRIES - 1 else
                             sq_head_counter_reg + 1;
                             
-    sq_tail_counter_next <= sq_tail_mispredict_recovery_memory(branch_mask_to_int(cdb_in.cdb_branch.branch_mask)) when cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1' else  
-                            (others => '0') when sq_tail_counter_reg = SQ_ENTRIES - 1 else
+    sq_tail_counter_next <= (others => '0') when sq_tail_counter_reg = SQ_ENTRIES - 1 else
                             sq_tail_counter_reg + 1;
                             
     lq_head_counter_next <= (others => '0') when lq_head_counter_reg = LQ_ENTRIES - 1 else
                             lq_head_counter_reg + 1;
-                            
-    lq_tail_counter_next <= lq_tail_mispredict_recovery_memory(branch_mask_to_int(cdb_in.cdb_branch.branch_mask)) when cdb_in.cdb_branch.branch_mispredicted = '1' and cdb_in.cdb_branch.valid = '1' else 
-                            (others => '0') when lq_tail_counter_reg = LQ_ENTRIES - 1 else
+
+    lq_tail_counter_next <= (others => '0') when lq_tail_counter_reg = LQ_ENTRIES - 1 else
                             lq_tail_counter_reg + 1;
               
     -- ============================ LOAD INSTRUCTION ALLOCATION LOGIC ============================
