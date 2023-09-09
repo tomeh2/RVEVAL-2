@@ -104,6 +104,7 @@ package pkg_cpu is
     constant DATA_ZERO : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0) := (others => '0');
     constant BRANCH_MASK_ZERO : std_logic_vector(BRANCHING_DEPTH - 1 downto 0) := (others => '0');
     constant SQ_TAG_ZERO : std_logic_vector(STORE_QUEUE_TAG_BITS - 1 downto 0) := (others => '0');
+    constant STORE_MASK_ZERO : std_logic_vector(SQ_ENTRIES - 1 downto 0) := (others => '0');
     
     -- Debugging Configuration
     constant ENABLE_REGFILE_ILA : boolean := true;
@@ -229,9 +230,18 @@ package pkg_cpu is
     end record;
     
     -- LSU Types
-    --type lsu_spec_lq_entry_type is record
-        
-    --end record;
+    type lsu_spec_lq_entry_type is record
+        address : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        address_valid : std_logic;
+        instr_tag : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
+        size : std_logic_vector(1 downto 0);
+        store_mask : std_logic_vector(SQ_ENTRIES - 1 downto 0);
+        is_unsigned : std_logic;  
+        speculate : std_logic;  
+        dispatched : std_logic;  
+        executed : std_logic;  
+        valid : std_logic;  
+    end record;
     
     type lsu_spec_sq_entry_type is record
         address : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
@@ -240,9 +250,19 @@ package pkg_cpu is
         data_valid : std_logic;
         is_cmo : std_logic;
         cmo_opcode : std_logic_vector(1 downto 0);
-        size : std_logic_vector(1 downto 0);
-        executed : std_logic;                
+        size : std_logic_vector(1 downto 0);               
         retired : std_logic;                
+        valid : std_logic;                
+    end record;
+    
+    type lsu_spec_input_type is record
+        generated_address : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        generated_address_valid : std_logic;
+        generated_data : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        generated_data_valid : std_logic;
+        sq_tag : std_logic_vector(STORE_QUEUE_TAG_BITS - 1 downto 0);
+        lq_tag : std_logic_vector(LOAD_QUEUE_TAG_BITS - 1 downto 0);
+        is_store : std_logic;
     end record;
     
     constant SQ_TAG_BITS : integer := integer(ceil(log2(real(SQ_ENTRIES))));

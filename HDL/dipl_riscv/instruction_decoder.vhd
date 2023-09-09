@@ -126,6 +126,7 @@ begin
             when OPCODE_LOAD | OPCODE_STORE => 
                 uop.operation_type <= OPTYPE_STORE when instruction(6 downto 5) = "01" else OPTYPE_LOAD;
                 uop.operation_select(7) <= '1' when instruction(6 downto 5) = "01" else '0';
+                uop.operation_select(3) <= '0';                 -- WHETHER TO SPECULATIVELY EXECUTE THIS INSTRUCTION EVEN WITHOUT HAVING RESOLVED ALL ADDR DEPS WITH STORES
                 uop.operation_select(2 downto 0) <= instruction(14 downto 12);
                 
                 uop.arch_dest_reg_addr <= "00000" when instruction(6 downto 5) = "01" else instruction(11 downto 7);
