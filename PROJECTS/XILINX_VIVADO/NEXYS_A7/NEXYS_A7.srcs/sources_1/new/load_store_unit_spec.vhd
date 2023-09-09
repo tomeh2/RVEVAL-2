@@ -22,6 +22,9 @@ entity load_store_unit_spec is
         lq_full : out std_logic;
         lq_empty : out std_logic;
         
+        to_cache : out cache_in_type;
+        from_cache : out cache_out_type;
+        
         reset : in std_logic;
         clk : in std_logic
     );
@@ -82,6 +85,7 @@ architecture Behavioral of load_store_unit_spec is
         size : std_logic_vector(1 downto 0);
         lq_tag : std_logic_vector(LQ_TAG_BITS - 1 downto 0);
         sq_mask : std_logic_vector(SQ_ENTRIES - 1 downto 0);
+        cacheop : std_logic_vector(1 downto 0);
         spec : std_logic;
         is_store : std_logic;
         valid : std_logic;
@@ -93,6 +97,7 @@ architecture Behavioral of load_store_unit_spec is
         size : std_logic_vector(1 downto 0);
         lq_tag : std_logic_vector(LQ_TAG_BITS - 1 downto 0);
         sq_mask : std_logic_vector(SQ_ENTRIES - 1 downto 0);
+        cacheop : std_logic_vector(1 downto 0);
         spec : std_logic;
         is_store : std_logic;
         valid : std_logic;
@@ -106,6 +111,7 @@ architecture Behavioral of load_store_unit_spec is
     -- OTHERS 
     signal address_match_bits_1 : std_logic_vector(SQ_ENTRIES - 1 downto 0);
     signal address_match_bits_2 : std_logic_vector(SQ_ENTRIES - 1 downto 0);
+    signal delay_load : std_logic; 
 begin
     -- ================================================================================================
     -- ////////////////////////////////////////// STORES //////////////////////////////////////////////
@@ -322,7 +328,7 @@ begin
                 end if;
                 
                 -- Updates the load's store mask and will try to re-execute it in the near future
-                if (pipeline_reg_1.valid = '1' and pipeline_reg_1.is_store = '0' and pipeline_reg_1.spec = '0' and pipeline_reg_1.sq_mask /= std_logic_vector(to_unsigned(0, SQ_ENTRIES))) then
+                if (delay_load = '1') then
                     load_queue(to_integer(unsigned(pipeline_reg_1.lq_tag))).store_mask <= pipeline_reg_1.sq_mask;
                     load_queue(to_integer(unsigned(pipeline_reg_1.lq_tag))).dispatched <= '0';
                 end if;
@@ -390,6 +396,7 @@ begin
                     pipeline_reg_0.data <= dispatched_store.data;
                     pipeline_reg_0.size <= dispatched_store.size;
                     pipeline_reg_0.lq_tag <= (others => '0');
+                    pipeline_reg_0.cacheop <= dispatched_store.cmo_opcode;
                     pipeline_reg_0.spec <= '0';
                     pipeline_reg_0.is_store <= '1';
                     pipeline_reg_0.valid <= '1';
@@ -418,6 +425,7 @@ begin
                 pipeline_reg_1.data <= pipeline_reg_0.data;
                 pipeline_reg_1.size <= pipeline_reg_0.size;
                 pipeline_reg_1.lq_tag <= pipeline_reg_0.lq_tag;
+                pipeline_reg_1.cacheop <= pipeline_reg_0.cacheop;
                 pipeline_reg_1.is_store <= pipeline_reg_0.is_store;
                 pipeline_reg_1.spec <= pipeline_reg_0.spec;
                 pipeline_reg_1.valid <= pipeline_reg_0.valid;
@@ -462,6 +470,19 @@ begin
         address_match_bits_2 <= address_match_bits_1 and pipeline_reg_0.sq_mask;        -- AND the produced mask with the dispatched instruction's mask.
                                                                                         -- This removes any matches that have occured with store instructions older then the load.
     end process;
+    -- ================================================================================================
+    -- ///////////////////////////////////////// STAGE 2 //////////////////////////////////////////////
+    -- ================================================================================================
+    delay_load <= '1' when pipeline_reg_1.valid = '1' and pipeline_reg_1.is_store = '0' and pipeline_reg_1.spec = '0' and pipeline_reg_1.sq_mask /= std_logic_vector(to_unsigned(0, SQ_ENTRIES)) else '0';
+    
+    to_cache.read_addr <= pipeline_reg_1.address;
+    to_cache.read_valid <= '1' when pipeline_reg_1.valid = '1' and pipeline_reg_1.is_store = '0' and (pipeline_reg_1.spec = '1' or pipeline_reg_1.sq_mask /= std_logic_vector(to_unsigned(0, SQ_ENTRIES))) else '0';
+    
+    to_cache.write_addr <= pipeline_reg_1.address;
+    to_cache.write_data <= pipeline_reg_1.data;
+    to_cache.write_size <= pipeline_reg_1.size;
+    to_cache.write_cacheop <= pipeline_reg_1.cacheop;
+    to_cache.write_valid <= pipeline_reg_1.valid and pipeline_reg_1.is_store;
     
 end Behavioral;
 

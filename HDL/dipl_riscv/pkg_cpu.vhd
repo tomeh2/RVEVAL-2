@@ -265,6 +265,31 @@ package pkg_cpu is
         is_store : std_logic;
     end record;
     
+    type cache_out_type is record
+        read_data : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        read_ready : std_logic;
+        read_hit : std_logic;
+        read_miss : std_logic;
+        
+        write_ready : std_logic;
+        write_hit : std_logic;
+        write_miss : std_logic;
+        
+        loaded_cacheline_tag : std_logic_vector(DCACHE_TAG_SIZE - 1 downto 0);
+        loaded_cacheline_tag_valid : std_logic;
+    end record;
+    
+    type cache_in_type is record
+        read_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        read_valid : std_logic;
+        
+        write_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        write_data : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        write_size : std_logic_vector(1 downto 0);
+        write_cacheop : std_logic_vector(1 downto 0);
+        write_valid : std_logic;
+    end record;
+    
     constant SQ_TAG_BITS : integer := integer(ceil(log2(real(SQ_ENTRIES))));
     constant LQ_TAG_BITS : integer := integer(ceil(log2(real(LQ_ENTRIES))));
     
