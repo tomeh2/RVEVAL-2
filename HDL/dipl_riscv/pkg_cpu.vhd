@@ -236,6 +236,7 @@ package pkg_cpu is
         instr_tag : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
         size : std_logic_vector(1 downto 0);
         store_mask : std_logic_vector(SQ_ENTRIES - 1 downto 0);
+        branch_mask : std_logic_vector(BRANCHING_DEPTH - 1 downto 0);
         is_unsigned : std_logic;  
         speculate : std_logic;  
         dispatched : std_logic;  
@@ -268,6 +269,10 @@ package pkg_cpu is
     type cache_out_type is record
         read_data : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
         read_ready : std_logic;
+        read_phys_dest_reg : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
+        read_lq_tag : std_logic_vector(LOAD_QUEUE_TAG_BITS - 1 downto 0);
+        instr_tag : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
+        read_size : std_logic_vector(1 downto 0);
         read_hit : std_logic;
         read_miss : std_logic;
         
@@ -281,6 +286,7 @@ package pkg_cpu is
     
     type cache_in_type is record
         read_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        read_size : std_logic_vector(1 downto 0);
         read_valid : std_logic;
         
         write_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);

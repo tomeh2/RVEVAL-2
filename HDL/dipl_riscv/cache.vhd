@@ -33,6 +33,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use IEEE.MATH_REAL.ALL;
+use WORK.PKG_CPU.ALL;
 
 entity cache is
     generic(
@@ -42,6 +43,7 @@ entity cache is
         ASSOCIATIVITY : integer;
         NUM_SETS : integer;
         NONCACHEABLE_BASE_ADDR : std_logic_vector(ADDR_SIZE_BITS - 1 downto 0) := (others => '0');
+        DECODE_READ_DATA_IN_CACHE : boolean;
         
         ENABLE_NONCACHEABLE_ADDRS : integer;
         ENABLE_WRITES : integer;
@@ -59,15 +61,18 @@ entity cache is
         bus_stbr : out std_logic;
         bus_ackr : in std_logic;
     
-        data_read : out std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
+        data_read_o : out std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
         cacheline_read_1 : out std_logic_vector((ADDR_SIZE_BITS - integer(ceil(log2(real(ENTRIES_PER_CACHELINE)))) - integer(ceil(log2(real(NUM_SETS)))) - integer(ceil(log2(real(ENTRY_SIZE_BYTES))))
                                                  + ENTRIES_PER_CACHELINE * ENTRY_SIZE_BYTES * 8) downto 0);
                                     
         addr_1 : in std_logic_vector(ADDR_SIZE_BITS - 1 downto 0);
         data_1 : in std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
+        phys_dest_reg_1 : in std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0) ;
+        instr_tag_1 : in std_logic_vector(INSTR_TAG_BITS - 1 downto 0) ;
+        is_unsigned : in std_logic;
         cacheop_1 : in std_logic_vector(1 downto 0);
         is_write_1 : in std_logic;
-        write_size_1 : in std_logic_vector(1 downto 0);                       -- 00: Byte | 01: Half-word | 10: Word
+        size_1 : in std_logic_vector(1 downto 0);                       -- 00: Byte | 01: Half-word | 10: Word
         valid_1 : in std_logic;
                              
         clear_pipeline_reg_0 : in std_logic;
@@ -162,8 +167,11 @@ architecture rtl of cache is
         addr : std_logic_vector(ADDR_SIZE_BITS - 1 downto 0);
         data : std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
         cacheop_1 : std_logic_vector(1 downto 0);
+        phys_dest_reg_1 : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
+        instr_tag_1 : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
         is_write_1 : std_logic;
-        write_size_1 : std_logic_vector(1 downto 0);
+        is_unsigned : std_logic;
+        size_1 : std_logic_vector(1 downto 0);
     end record;
     
     type c2_c3_pipeline_reg_type is record
@@ -171,18 +179,24 @@ architecture rtl of cache is
         addr : std_logic_vector(ADDR_SIZE_BITS - 1 downto 0);
         data : std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
         cacheline : std_logic_vector(CACHELINE_SIZE - 1 downto 0);
+        phys_dest_reg_1 : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
+        instr_tag_1 : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
         cacheop_1 : std_logic_vector(1 downto 0);
         hit_mask : std_logic_vector(ASSOCIATIVITY - 1 downto 0);
         evict_mask : std_logic_vector(ASSOCIATIVITY - 1 downto 0);
         set_valid_bits : std_logic_vector(ASSOCIATIVITY - 1 downto 0);
         set_full : std_logic;
         is_write_1 : std_logic;
-        write_size_1 : std_logic_vector(1 downto 0);
+        is_unsigned : std_logic;
+        size_1 : std_logic_vector(1 downto 0);
         hit : std_logic;
     end record;
     
     signal c1_c2_pipeline_reg_1 : c1_c2_pipeline_reg_type;
     signal c2_c3_pipeline_reg_1 : c2_c3_pipeline_reg_type;
+    
+    signal load_data_decoded : std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
+    signal data_read : std_logic_vector(ENTRY_SIZE_BYTES * 8 - 1 downto 0);
 begin
     cache_bus_controller_inst : entity work.cache_bus_controller(rtl)
                                     generic map(ADDR_SIZE => ADDR_SIZE_BITS,
@@ -210,7 +224,7 @@ begin
                                              cache_write_word => c2_c3_pipeline_reg_1.data,
                                              cache_write_cacheline => c2_c3_pipeline_reg_1.cacheline(CACHELINE_DATA_START downto CACHELINE_DATA_END),
                                              cache_write_addr => cacheline_write_addr_aligned,
-                                             cache_write_size => c2_c3_pipeline_reg_1.write_size_1,
+                                             cache_write_size => c2_c3_pipeline_reg_1.size_1,
                                              cache_write_en => cacheline_evict_write_en,
                                              cache_write_word_en => i_addr_noncacheable and c2_c3_pipeline_reg_1.valid and c2_c3_pipeline_reg_1.is_write_1 and not c2_c3_pipeline_reg_1.hit,
                                              write_busy => cbc_write_busy,
@@ -305,13 +319,13 @@ begin
         begin
             cacheline_update <= c2_c3_pipeline_reg_1.cacheline;
             cacheline_update(CACHELINE_DIRTY_BIT) <= '1';
-            if (c2_c3_pipeline_reg_1.write_size_1 = "00") then
+            if (c2_c3_pipeline_reg_1.size_1 = "00") then
                 cacheline_update((to_integer(unsigned((c2_c3_pipeline_reg_1.addr(CACHELINE_ALIGNMENT - 1 downto 0)))) + 1) * 8 - 1 downto to_integer(unsigned(c2_c3_pipeline_reg_1.addr(CACHELINE_ALIGNMENT - 1 downto 0))) * 8)
                     <= c2_c3_pipeline_reg_1.data(7 downto 0);
-            elsif (c2_c3_pipeline_reg_1.write_size_1 = "01") then
+            elsif (c2_c3_pipeline_reg_1.size_1 = "01") then
                 cacheline_update((to_integer(unsigned((c2_c3_pipeline_reg_1.addr(CACHELINE_ALIGNMENT - 1 downto 1)))) + 1) * 16 - 1 downto to_integer(unsigned(c2_c3_pipeline_reg_1.addr(CACHELINE_ALIGNMENT - 1 downto 1))) * 16)
                     <= c2_c3_pipeline_reg_1.data(15 downto 0);
-            elsif (c2_c3_pipeline_reg_1.write_size_1 = "10") then
+            elsif (c2_c3_pipeline_reg_1.size_1 = "10") then
                 cacheline_update((to_integer(unsigned((c2_c3_pipeline_reg_1.addr(CACHELINE_ALIGNMENT - 1 downto 2)))) + 1) * 32 - 1 downto to_integer(unsigned(c2_c3_pipeline_reg_1.addr(CACHELINE_ALIGNMENT - 1 downto 2))) * 32)
                     <= c2_c3_pipeline_reg_1.data(31 downto 0);
             end if;
@@ -420,7 +434,11 @@ begin
                     c1_c2_pipeline_reg_1.addr <= addr_1;
                     c1_c2_pipeline_reg_1.is_write_1 <= is_write_1;
                     c1_c2_pipeline_reg_1.cacheop_1 <= cacheop_1;
-                    c1_c2_pipeline_reg_1.write_size_1 <= write_size_1;
+                    c1_c2_pipeline_reg_1.is_unsigned <= is_unsigned;
+                    c1_c2_pipeline_reg_1.phys_dest_reg_1 <= phys_dest_reg_1;
+                    c1_c2_pipeline_reg_1.instr_tag_1 <= instr_tag_1;
+                    c1_c2_pipeline_reg_1.is_unsigned <= is_unsigned;
+                    c1_c2_pipeline_reg_1.size_1 <= size_1;
                     c1_c2_pipeline_reg_1.data <= data_1;
                     
                     if (ENABLE_WRITES = 1) then     -- FORWARD UPDATED CACHELINE IN CASE OF ACCESS TO THE SAME ONE IN THE PREVIOUS STAGE
@@ -441,8 +459,11 @@ begin
                     c2_c3_pipeline_reg_1.hit <= i_hit;
                     c2_c3_pipeline_reg_1.hit_mask <= hit_bits;
                     c2_c3_pipeline_reg_1.is_write_1 <= c1_c2_pipeline_reg_1.is_write_1;
+                    c2_c3_pipeline_reg_1.phys_dest_reg_1 <= c1_c2_pipeline_reg_1.phys_dest_reg_1;
+                    c2_c3_pipeline_reg_1.instr_tag_1 <= c1_c2_pipeline_reg_1.instr_tag_1;
+                    c2_c3_pipeline_reg_1.is_unsigned <= c1_c2_pipeline_reg_1.is_unsigned;
                     c2_c3_pipeline_reg_1.cacheop_1 <= c1_c2_pipeline_reg_1.cacheop_1;
-                    c2_c3_pipeline_reg_1.write_size_1 <= c1_c2_pipeline_reg_1.write_size_1;
+                    c2_c3_pipeline_reg_1.size_1 <= c1_c2_pipeline_reg_1.size_1;
                     c2_c3_pipeline_reg_1.data <= c1_c2_pipeline_reg_1.data;
                     c2_c3_pipeline_reg_1.set_full <= i_set_full;
                 else
@@ -584,6 +605,55 @@ begin
             end if;
         end loop;
     end process;
+    
+    dec_data_cache_gen : if (DECODE_READ_DATA_IN_CACHE = true) generate
+        process(all)
+        begin
+            load_data_decoded(31 downto 0) <= (others => '0');     
+            if (c2_c3_pipeline_reg_1.size_1 = "00") then                  -- LB
+                if (c2_c3_pipeline_reg_1.addr(1 downto 0) = "00") then
+                    if (c2_c3_pipeline_reg_1.is_unsigned = '0') then
+                        load_data_decoded(31 downto 8) <= (others => data_read(7));   
+                    end if;
+                    load_data_decoded(7 downto 0) <= data_read(7 downto 0);
+                elsif (c2_c3_pipeline_reg_1.addr(1 downto 0) = "01") then
+                    if (c2_c3_pipeline_reg_1.is_unsigned = '0') then
+                        load_data_decoded(31 downto 8) <= (others => data_read(15));   
+                    end if;
+                    load_data_decoded(7 downto 0) <= data_read(15 downto 8);
+                elsif (c2_c3_pipeline_reg_1.addr(1 downto 0) = "10") then
+                    if (c2_c3_pipeline_reg_1.is_unsigned = '0') then
+                        load_data_decoded(31 downto 8) <= (others => data_read(23));   
+                    end if;
+                    load_data_decoded(7 downto 0) <= data_read(23 downto 16);
+                elsif (c2_c3_pipeline_reg_1.addr(1 downto 0) = "11") then
+                    if (c2_c3_pipeline_reg_1.is_unsigned = '0') then
+                        load_data_decoded(31 downto 8) <= (others => data_read(31));   
+                    end if;
+                    load_data_decoded(7 downto 0) <= data_read(31 downto 24);
+                end if;
+            elsif (c2_c3_pipeline_reg_1.size_1 = "01") then
+                if (c2_c3_pipeline_reg_1.addr(0) = '0') then
+                    if (c2_c3_pipeline_reg_1.is_unsigned = '0') then
+                        load_data_decoded(31 downto 16) <= (others => data_read(15));   
+                    end if;
+                    load_data_decoded(15 downto 0) <= data_read(15 downto 0);
+                else
+                    if (c2_c3_pipeline_reg_1.is_unsigned = '0') then
+                        load_data_decoded(31 downto 16) <= (others => data_read(31));   
+                    end if;
+                    load_data_decoded(15 downto 0) <= data_read(31 downto 16);
+                end if;
+            elsif (c2_c3_pipeline_reg_1.size_1 = "10") then  
+                    load_data_decoded <= data_read;
+            else
+                load_data_decoded(31 downto 0) <= (others => '0');
+            end if;
+        end process;   
+        data_read_o <= load_data_decoded;
+    else generate
+        data_read_o <= data_read;
+    end generate;
     
     hit <= c2_c3_pipeline_reg_1.hit and c2_c3_pipeline_reg_1.valid;
     miss <= not c2_c3_pipeline_reg_1.hit and c2_c3_pipeline_reg_1.valid;

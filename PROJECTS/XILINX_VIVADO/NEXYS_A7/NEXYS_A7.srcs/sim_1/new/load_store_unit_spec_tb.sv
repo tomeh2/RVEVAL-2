@@ -73,6 +73,24 @@ module load_store_unit_spec_tb(
     
     typedef struct packed
     {
+        logic [31:0] read_data;
+        logic read_ready;
+        logic [5:0] read_phys_dest_reg;
+        logic [3:0] instr_tag;
+        logic [1:0] read_size;
+        logic [2:0] lq_tag;
+        logic read_hit; 
+        logic read_miss;
+        logic write_ready;
+        logic write_hit;
+        logic write_miss;
+                                        
+        logic loaded_cacheline_tag_valid;
+        logic [23 - 1:0] loaded_cacheline_tag;
+    } cache_out;
+    
+    typedef struct packed
+    {
         cdb_single cdb_data;
         cdb_single cdb_branch;
     } cdb;
@@ -81,6 +99,7 @@ module load_store_unit_spec_tb(
     rob_head rob_head_inst;
     cdb_single cdb_inst;
     lsu_spec_input lsu_spec_input_inst;
+    cache_out cache_out_inst;
     
     task t_reset();
         reset = 1;
@@ -174,6 +193,23 @@ module load_store_unit_spec_tb(
         #100ps;
         lsu_spec_input_inst.lq_tag <= 0;
         lsu_spec_input_inst.generated_address_valid <= 0;
+    endtask;
+    
+    task t_cacheLoadDone();
+        cache_out_inst.read_data <= 32'hF0F0_B0B0;
+        cache_out_inst.instr_tag <= 5;
+        cache_out_inst.read_phys_dest_reg <= 12;
+        cache_out_inst.read_ready <= 1;
+        cache_out_inst.read_size <= 0;
+        cache_out_inst.lq_tag <= 0;
+        
+        @(posedge clk);
+        #100ps;
+        cache_out_inst.read_data <= 32'h0000_0000;
+        cache_out_inst.instr_tag <= 0;
+        cache_out_inst.read_phys_dest_reg <= 0;
+        cache_out_inst.read_ready <= 0;
+        cache_out_inst.read_size <= 0;
     endtask;
     
     always 
@@ -378,6 +414,11 @@ module load_store_unit_spec_tb(
         t_genAddrDataStore(0, 32'h3000_0000, 32'h3333_3333);
         t_retireStore(0);
         
+        #(T * 50);
+        t_reset();
+        t_cacheLoadDone();
+        t_cacheLoadDone();
+        
         #1ms;
     end initial;
     
@@ -387,6 +428,8 @@ module load_store_unit_spec_tb(
                                   .rob_head_in(rob_head_inst),
                                   .cdb_branch(cdb_inst),
                                   .addr_data_gen_in(lsu_spec_input_inst),
+                                  
+                                  .from_cache(cache_out_inst),
                                   
                                   .clk(clk),
                                   .reset(reset));

@@ -510,7 +510,7 @@ begin
     next_uop_full.instr_tag <= rob_alloc_instr_tag;
     next_uop_full.stq_tag <= sq_alloc_tag;
     next_uop_full.ldq_tag <= lq_alloc_tag;
-    next_uop_full.speculated_branches_mask <= pipeline_reg_1.speculated_branches_mask;
+    next_uop_full.speculated_branches_mask <= pipeline_reg_1.speculated_branches_mask when cdb.cdb_branch.valid = '0' else pipeline_reg_1.speculated_branches_mask and not cdb.cdb_branch.branch_mask;
     next_uop_full.branch_predicted_outcome <= pipeline_reg_1.branch_predicted_outcome;
                     
     next_uop_exec.operation_type <= pipeline_reg_1.operation_type;

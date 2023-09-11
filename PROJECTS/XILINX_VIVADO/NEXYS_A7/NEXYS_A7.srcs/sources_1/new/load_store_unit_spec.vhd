@@ -9,6 +9,10 @@ use WORK.PKG_CPU.ALL;
 entity load_store_unit_spec is
     port(
         cdb_branch : in cdb_single_type;
+        cdb_out : out cdb_single_type;
+        cdb_request : out std_logic;
+        cdb_granted : in std_logic;
+        
         rob_head_in : in rob_head_type;
         
         uop_in : uop_full_type;
@@ -23,7 +27,7 @@ entity load_store_unit_spec is
         lq_empty : out std_logic;
         
         to_cache : out cache_in_type;
-        from_cache : out cache_out_type;
+        from_cache : in cache_out_type;
         
         reset : in std_logic;
         clk : in std_logic
@@ -102,16 +106,31 @@ architecture Behavioral of load_store_unit_spec is
         is_store : std_logic;
         valid : std_logic;
     end record;
-    signal pipeline_reg_0 : pipeline_reg_0_type;
-    signal pipeline_reg_0_next : pipeline_reg_0_type;
     
-    signal pipeline_reg_1 : pipeline_reg_0_type;
-    signal pipeline_reg_1_next : pipeline_reg_0_type;
+    type pipeline_reg_2_type is record
+        data : std_logic_vector(CPU_DATA_WIDTH_BITS - 1 downto 0);
+        phys_dest_reg : std_logic_vector(PHYS_REGFILE_ADDR_BITS - 1 downto 0);
+        instr_tag : std_logic_vector(INSTR_TAG_BITS - 1 downto 0);
+        valid : std_logic;
+    end record;
+    
+    signal pipeline_reg_0 : pipeline_reg_0_type;
+    signal pipeline_reg_1 : pipeline_reg_1_type;
+    signal pipeline_reg_2 : pipeline_reg_2_type;
     
     -- OTHERS 
     signal address_match_bits_1 : std_logic_vector(SQ_ENTRIES - 1 downto 0);
     signal address_match_bits_2 : std_logic_vector(SQ_ENTRIES - 1 downto 0);
-    signal delay_load : std_logic; 
+    signal redo_load : std_logic; 
+    
+    signal stall_0 : std_logic;
+    signal stall_1 : std_logic;
+    
+    signal read_dispatch_to_cache : std_logic;
+    signal write_dispatch_to_cache : std_logic;
+    
+    signal load_data_decoded : std_logic_vector(31 downto 0);
+    signal load_data_reg : std_logic_vector(31 downto 0);
 begin
     -- ================================================================================================
     -- ////////////////////////////////////////// STORES //////////////////////////////////////////////
@@ -121,7 +140,8 @@ begin
     sq_dispatch_ready <= '1' when dispatched_store.retired = '1' and 
                                   dispatched_store.address_valid = '1' and
                                   dispatched_store.data_valid = '1' and
-                                  sq_empty = '0' else '0';
+                                  sq_empty = '0' and
+                                  stall_0 = '0' else '0';
     
     process(clk)
     begin
@@ -298,6 +318,7 @@ begin
                     load_queue(to_integer(lq_tail_counter_reg)).instr_tag <= uop_in.instr_tag;
                     load_queue(to_integer(lq_tail_counter_reg)).size <= uop_in.operation_select(1 downto 0);
                     load_queue(to_integer(lq_tail_counter_reg)).store_mask <= lq_curr_store_mask;
+                    load_queue(to_integer(lq_tail_counter_reg)).branch_mask <= uop_in.branch_mask;
                     load_queue(to_integer(lq_tail_counter_reg)).is_unsigned <= uop_in.operation_select(2);
                     load_queue(to_integer(lq_tail_counter_reg)).speculate <= uop_in.operation_select(3);
                     load_queue(to_integer(lq_tail_counter_reg)).dispatched <= '0';
@@ -328,9 +349,19 @@ begin
                 end if;
                 
                 -- Updates the load's store mask and will try to re-execute it in the near future
-                if (delay_load = '1') then
+                if (redo_load = '1') then
                     load_queue(to_integer(unsigned(pipeline_reg_1.lq_tag))).store_mask <= pipeline_reg_1.sq_mask;
                     load_queue(to_integer(unsigned(pipeline_reg_1.lq_tag))).dispatched <= '0';
+                end if;
+                
+                if (from_cache.read_ready = '1') then
+                    load_queue(to_integer(unsigned(from_cache.read_lq_tag))).executed <= '1';
+                end if;
+                
+                if (cdb_branch.valid = '1') then
+                    for i in 0 to LQ_ENTRIES loop
+                        load_queue(i).branch_mask <= load_queue(i).branch_mask and not cdb_branch.branch_mask;
+                    end loop;
                 end if;
             end if;
         end if;
@@ -366,13 +397,17 @@ begin
         selection := to_unsigned(0, LQ_TAG_BITS);
         valid := '0';
         for i in LQ_ENTRIES - 1 downto 0 loop
-            if (load_queue(i).valid = '1' and load_queue(i).address_valid = '1' and load_queue(i).dispatched = '0' and load_queue(i).executed = '0') then
+            if (load_queue(i).valid = '1' and 
+                load_queue(i).address_valid = '1' and 
+                load_queue(i).dispatched = '0' and 
+                load_queue(i).executed = '0' and    
+                load_queue(i).branch_mask = BRANCH_MASK_ZERO) then              -- TEMPORARILY DISABLE THE EXECUTION OF SPECULATIVE LOAD INSTRUCTIONS TODO: REMOVE
                 selection := to_unsigned(i, LQ_TAG_BITS);
                 valid := '1';
             end if;
         end loop;
         lq_dispatch_load_index <= selection;
-        lq_dispatch_ready <= valid;
+        lq_dispatch_ready <= valid and not stall_0;
     end process;
     
     lq_empty <= '1' when lq_num_elements = 0 else '0';
@@ -391,25 +426,31 @@ begin
             if (reset = '1') then
                 pipeline_reg_0.valid <= '0';
             else
-                if (sq_dispatch = '1') then
-                    pipeline_reg_0.address <= dispatched_store.address;
-                    pipeline_reg_0.data <= dispatched_store.data;
-                    pipeline_reg_0.size <= dispatched_store.size;
-                    pipeline_reg_0.lq_tag <= (others => '0');
-                    pipeline_reg_0.cacheop <= dispatched_store.cmo_opcode;
-                    pipeline_reg_0.spec <= '0';
-                    pipeline_reg_0.is_store <= '1';
-                    pipeline_reg_0.valid <= '1';
-                elsif (lq_dispatch = '1') then
-                    pipeline_reg_0.address <= dispatched_load.address;
-                    pipeline_reg_0.size <= dispatched_load.size;
-                    pipeline_reg_0.lq_tag <= std_logic_vector(lq_dispatch_load_index);
-                    pipeline_reg_0.sq_mask <= dispatched_load.store_mask;
-                    pipeline_reg_0.spec <= dispatched_load.speculate;
-                    pipeline_reg_0.is_store <= '0';
-                    pipeline_reg_0.valid <= '1';
+                if (stall_0 = '0') then
+                    if (sq_dispatch = '1') then
+                        pipeline_reg_0.address <= dispatched_store.address;
+                        pipeline_reg_0.data <= dispatched_store.data;
+                        pipeline_reg_0.size <= dispatched_store.size;
+                        pipeline_reg_0.lq_tag <= (others => '0');
+                        pipeline_reg_0.cacheop <= dispatched_store.cmo_opcode;
+                        pipeline_reg_0.branch_mask <= ;
+                        pipeline_reg_0.spec <= '0';
+                        pipeline_reg_0.is_store <= '1';
+                        pipeline_reg_0.valid <= '1';
+                    elsif (lq_dispatch = '1') then
+                        pipeline_reg_0.address <= dispatched_load.address;
+                        pipeline_reg_0.size <= dispatched_load.size;
+                        pipeline_reg_0.lq_tag <= std_logic_vector(lq_dispatch_load_index);
+                        pipeline_reg_0.sq_mask <= dispatched_load.store_mask;
+                        pipeline_reg_0.branch_mask <= ;
+                        pipeline_reg_0.spec <= dispatched_load.speculate;
+                        pipeline_reg_0.is_store <= '0';
+                        pipeline_reg_0.valid <= '1';
+                    else
+                        pipeline_reg_0.valid <= '0';
+                    end if;
                 else
-                    pipeline_reg_0.valid <= '0';
+                    
                 end if;
             end if;
         end if;
@@ -421,15 +462,34 @@ begin
             if (reset = '1') then
                 pipeline_reg_1.valid <= '0';
             else
-                pipeline_reg_1.address <= pipeline_reg_0.address;
-                pipeline_reg_1.data <= pipeline_reg_0.data;
-                pipeline_reg_1.size <= pipeline_reg_0.size;
-                pipeline_reg_1.lq_tag <= pipeline_reg_0.lq_tag;
-                pipeline_reg_1.cacheop <= pipeline_reg_0.cacheop;
-                pipeline_reg_1.is_store <= pipeline_reg_0.is_store;
-                pipeline_reg_1.spec <= pipeline_reg_0.spec;
-                pipeline_reg_1.valid <= pipeline_reg_0.valid;
-                pipeline_reg_1.sq_mask <= address_match_bits_2;
+                if (stall_1 = '0') then
+                    pipeline_reg_1.address <= pipeline_reg_0.address;
+                    pipeline_reg_1.data <= pipeline_reg_0.data;
+                    pipeline_reg_1.size <= pipeline_reg_0.size;
+                    pipeline_reg_1.lq_tag <= pipeline_reg_0.lq_tag;
+                    pipeline_reg_1.cacheop <= pipeline_reg_0.cacheop;
+                    pipeline_reg_1.is_store <= pipeline_reg_0.is_store;
+                    pipeline_reg_1.branch_mask <= ;
+                    pipeline_reg_1.spec <= pipeline_reg_0.spec;
+                    pipeline_reg_1.valid <= pipeline_reg_0.valid;
+                    pipeline_reg_1.sq_mask <= address_match_bits_2;
+                else
+                
+                end if;
+            end if;
+        end if;
+    end process;
+    
+    pipeline_reg_2_proc : process(clk)
+    begin
+        if (rising_edge(clk)) then
+            if (reset = '1') then
+                pipeline_reg_2.valid <= '0';
+            else
+                pipeline_reg_2.data <= from_cache.read_data;
+                pipeline_reg_2.phys_dest_reg <= from_cache.read_phys_dest_reg;
+                pipeline_reg_2.instr_tag <= from_cache.instr_tag;
+                pipeline_reg_2.valid <= from_cache.read_ready;
             end if;
         end if;
     end process;
@@ -473,9 +533,10 @@ begin
     -- ================================================================================================
     -- ///////////////////////////////////////// STAGE 2 //////////////////////////////////////////////
     -- ================================================================================================
-    delay_load <= '1' when pipeline_reg_1.valid = '1' and pipeline_reg_1.is_store = '0' and pipeline_reg_1.spec = '0' and pipeline_reg_1.sq_mask /= std_logic_vector(to_unsigned(0, SQ_ENTRIES)) else '0';
+    redo_load <= '1' when pipeline_reg_1.valid = '1' and pipeline_reg_1.is_store = '0' and pipeline_reg_1.spec = '0' and pipeline_reg_1.sq_mask /= std_logic_vector(to_unsigned(0, SQ_ENTRIES)) else '0';
     
     to_cache.read_addr <= pipeline_reg_1.address;
+    to_cache.read_size <= pipeline_reg_1.size;
     to_cache.read_valid <= '1' when pipeline_reg_1.valid = '1' and pipeline_reg_1.is_store = '0' and (pipeline_reg_1.spec = '1' or pipeline_reg_1.sq_mask /= std_logic_vector(to_unsigned(0, SQ_ENTRIES))) else '0';
     
     to_cache.write_addr <= pipeline_reg_1.address;
@@ -484,6 +545,28 @@ begin
     to_cache.write_cacheop <= pipeline_reg_1.cacheop;
     to_cache.write_valid <= pipeline_reg_1.valid and pipeline_reg_1.is_store;
     
+    read_dispatch_to_cache <= '1' when pipeline_reg_1.valid = '1' and pipeline_reg_1.is_store = '0' and (pipeline_reg_1.sq_mask = std_logic_vector(to_unsigned(0, SQ_ENTRIES)) or pipeline_reg_1.spec = '1') else '0';
+    write_dispatch_to_cache <= '1' when pipeline_reg_1.valid = '1' and pipeline_reg_1.is_store = '1' else '0';
+    stall_1 <= '1' when (read_dispatch_to_cache = '1' and from_cache.read_ready = '0') or (write_dispatch_to_cache = '1' and from_cache.write_ready = '0') else '0';
+    stall_0 <= '1' when pipeline_reg_0.valid = '1' and stall_1 = '1' else '0';
+   
+   -- ================================================================================================
+   -- /////////////////////////////////////// DATA READ //////////////////////////////////////////////
+   -- ================================================================================================
+    cdb_out.pc_low_bits <= (others => '0'); 
+    cdb_out.data <= pipeline_reg_2.data;
+    cdb_out.target_addr <= (others => '0');
+    cdb_out.phys_dest_reg <= pipeline_reg_2.phys_dest_reg;
+    cdb_out.instr_tag <= pipeline_reg_2.instr_tag;
+    cdb_out.branch_mask <= (others => '0');
+    cdb_out.branch_mispredicted <= '0';
+    cdb_out.is_jal <= '0';
+    cdb_out.is_jalr <= '0';
+    cdb_out.branch_taken <= '0';
+    cdb_out.valid <= pipeline_reg_2.valid;
+    
+    cdb_request <= pipeline_reg_2.valid;
+   
 end Behavioral;
 
 
