@@ -284,18 +284,20 @@ package pkg_cpu is
         loaded_cacheline_tag_valid : std_logic;
     end record;
     
-    type cache_in_type is record
-        read_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
-        read_size : std_logic_vector(1 downto 0);
-        read_valid : std_logic;
-        
-        write_addr : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
-        write_data : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
-        write_size : std_logic_vector(1 downto 0);
-        write_cacheop : std_logic_vector(1 downto 0);
-        write_valid : std_logic;
+    type cache_write_uop_type is record
+        address : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        data : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        size : std_logic_vector(1 downto 0);
+        cacheop : std_logic_vector(1 downto 0);
+        valid : std_logic;
     end record;
     
+    type cache_read_uop_type is record
+        address : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
+        size : std_logic_vector(1 downto 0);
+        valid : std_logic;
+    end record;
+
     constant SQ_TAG_BITS : integer := integer(ceil(log2(real(SQ_ENTRIES))));
     constant LQ_TAG_BITS : integer := integer(ceil(log2(real(LQ_ENTRIES))));
     
@@ -439,6 +441,7 @@ package pkg_cpu is
                                      '0');
     
     function branch_mask_to_int(branch_mask : in std_logic_vector(BRANCHING_DEPTH - 1 downto 0)) return integer;
+    function f_bits_needed(n : integer) return integer;
     
     type f1_f2_pipeline_reg_type is record
         pc : std_logic_vector(CPU_ADDR_WIDTH_BITS - 1 downto 0);
@@ -495,6 +498,12 @@ package body pkg_cpu is
         end loop;
         return temp;
     end function branch_mask_to_int;
+    
+    -- As a result gives the minimum number of bits needed to represent n values
+    function f_bits_needed(n : integer) return integer is
+    begin
+        return integer(ceil(log2(real(n))));
+    end function;
 end package body;
 
 

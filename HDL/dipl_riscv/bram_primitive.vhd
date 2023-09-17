@@ -12,9 +12,12 @@ entity bram_primitive is
     );
     port(
         d : in std_logic_vector(DATA_WIDTH - 1 downto 0);
-        q : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+        q1 : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+        q2 : out std_logic_vector(DATA_WIDTH - 1 downto 0);
         
-        addr_read : in std_logic_vector(integer(ceil(log2(real(SIZE)))) - 1 downto 0);
+        addr_read_1 : in std_logic_vector(integer(ceil(log2(real(SIZE)))) - 1 downto 0);
+        addr_read_2 : in std_logic_vector(integer(ceil(log2(real(SIZE)))) - 1 downto 0);
+        
         addr_write : in std_logic_vector(integer(ceil(log2(real(SIZE)))) - 1 downto 0);
         
         write_en : in std_logic;
@@ -34,10 +37,12 @@ begin
     begin
         if (rising_edge(clk)) then
             if (reset = '1') then
-                q <= (others => '0');
+                q1 <= (others => '0');
+                q2 <= (others => '0');
             else
                 if (read_en = '1') then
-                    q <= bram(to_integer(unsigned(addr_read)));
+                    q1 <= bram(to_integer(unsigned(addr_read_1)));
+                    q2 <= bram(to_integer(unsigned(addr_read_2)));
                 end if;
                 
                 if (write_en = '1') then

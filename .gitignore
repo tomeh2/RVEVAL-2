@@ -18,6 +18,7 @@
 #Project files
 !*.xpr
 !*.lpf
+!*.wcfg
 
 *impl1/
 *.sim/
@@ -39,5 +40,3 @@
 !*.srec
 !*.c
 !*.py
-
-#

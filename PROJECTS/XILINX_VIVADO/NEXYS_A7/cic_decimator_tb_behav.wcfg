@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="cic_decimator_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="cic_decimator_tb" />
+            <top_module name="glbl" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,214.232 ns"></ZoomEndTime>
+      <Cursor1Time time="807.020 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="375"></NameColumnWidth>
+      <ValueColumnWidth column_width="148"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="16" />
+   <wvobject fp_name="/cic_decimator_tb/in" type="array">
+      <obj_property name="ElementShortName">in[15:0]</obj_property>
+      <obj_property name="ObjectShortName">in[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/out" type="array">
+      <obj_property name="ElementShortName">out[15:0]</obj_property>
+      <obj_property name="ObjectShortName">out[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/signal_in" type="array">
+      <obj_property name="ElementShortName">signal_in[15:0]</obj_property>
+      <obj_property name="ObjectShortName">signal_in[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/signal_out" type="array">
+      <obj_property name="ElementShortName">signal_out[15:0]</obj_property>
+      <obj_property name="ObjectShortName">signal_out[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/valid" type="logic">
+      <obj_property name="ElementShortName">valid</obj_property>
+      <obj_property name="ObjectShortName">valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/decimation_counter_reg" type="array">
+      <obj_property name="ElementShortName">decimation_counter_reg[7:0]</obj_property>
+      <obj_property name="ObjectShortName">decimation_counter_reg[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/decimation_sample_valid" type="logic">
+      <obj_property name="ElementShortName">decimation_sample_valid</obj_property>
+      <obj_property name="ObjectShortName">decimation_sample_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/integrator_regs" type="array">
+      <obj_property name="ElementShortName">integrator_regs[0:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">integrator_regs[0:0][15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/intermediate_results" type="array">
+      <obj_property name="ElementShortName">intermediate_results[1:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">intermediate_results[1:0][15:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/comb_regs" type="array">
+      <obj_property name="ElementShortName">comb_regs[0:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">comb_regs[0:0][15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/DATA_BIT_WIDTH" type="other">
+      <obj_property name="ElementShortName">DATA_BIT_WIDTH</obj_property>
+      <obj_property name="ObjectShortName">DATA_BIT_WIDTH</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/DELAY" type="other">
+      <obj_property name="ElementShortName">DELAY</obj_property>
+      <obj_property name="ObjectShortName">DELAY</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/ORDER" type="other">
+      <obj_property name="ElementShortName">ORDER</obj_property>
+      <obj_property name="ObjectShortName">ORDER</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cic_decimator_tb/uut/DECIMATION_FACTOR" type="other">
+      <obj_property name="ElementShortName">DECIMATION_FACTOR</obj_property>
+      <obj_property name="ObjectShortName">DECIMATION_FACTOR</obj_property>
+   </wvobject>
+</wave_config>

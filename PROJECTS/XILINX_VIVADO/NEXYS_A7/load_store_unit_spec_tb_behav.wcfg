@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="load_store_unit_spec_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="load_store_unit_spec_tb" />
+            <top_module name="pkg_cpu" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="1.166667 us"></ZoomStartTime>
+      <ZoomEndTime time="8.166667 us"></ZoomEndTime>
+      <Cursor1Time time="6.548203 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="375"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="6" />
+   <wvobject fp_name="/load_store_unit_spec_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/load_store_unit_spec_tb/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/load_store_unit_spec_tb/uop_in_valid" type="logic">
+      <obj_property name="ElementShortName">uop_in_valid</obj_property>
+      <obj_property name="ObjectShortName">uop_in_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/load_store_unit_spec_tb/uop_inst" type="array">
+      <obj_property name="ElementShortName">uop_inst</obj_property>
+      <obj_property name="ObjectShortName">uop_inst</obj_property>
+   </wvobject>
+   <wvobject fp_name="group2961" type="group">
+      <obj_property name="label">LSU</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/cdb_out" type="array">
+         <obj_property name="ElementShortName">cdb_out</obj_property>
+         <obj_property name="ObjectShortName">cdb_out</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/cdb_branch" type="array">
+         <obj_property name="ElementShortName">cdb_branch</obj_property>
+         <obj_property name="ObjectShortName">cdb_branch</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/to_cache" type="array">
+         <obj_property name="ElementShortName">to_cache</obj_property>
+         <obj_property name="ObjectShortName">to_cache</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/from_cache" type="array">
+         <obj_property name="ElementShortName">from_cache</obj_property>
+         <obj_property name="ObjectShortName">from_cache</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/rob_head_in" type="array">
+         <obj_property name="ElementShortName">rob_head_in</obj_property>
+         <obj_property name="ObjectShortName">rob_head_in</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/uop_in" type="array">
+         <obj_property name="ElementShortName">uop_in</obj_property>
+         <obj_property name="ObjectShortName">uop_in</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/uop_in_valid" type="logic">
+         <obj_property name="ElementShortName">uop_in_valid</obj_property>
+         <obj_property name="ObjectShortName">uop_in_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/addr_data_gen_in" type="array">
+         <obj_property name="ElementShortName">addr_data_gen_in</obj_property>
+         <obj_property name="ObjectShortName">addr_data_gen_in</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/address_match_bits_1" type="array">
+         <obj_property name="ElementShortName">address_match_bits_1[7:0]</obj_property>
+         <obj_property name="ObjectShortName">address_match_bits_1[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/address_match_bits_2" type="array">
+         <obj_property name="ElementShortName">address_match_bits_2[7:0]</obj_property>
+         <obj_property name="ObjectShortName">address_match_bits_2[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/pipeline_reg_0" type="array">
+         <obj_property name="ElementShortName">pipeline_reg_0</obj_property>
+         <obj_property name="ObjectShortName">pipeline_reg_0</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/pipeline_reg_1" type="array">
+         <obj_property name="ElementShortName">pipeline_reg_1</obj_property>
+         <obj_property name="ObjectShortName">pipeline_reg_1</obj_property>
+      </wvobject>
+      <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/pipeline_reg_2" type="array">
+         <obj_property name="ElementShortName">pipeline_reg_2</obj_property>
+         <obj_property name="ObjectShortName">pipeline_reg_2</obj_property>
+      </wvobject>
+      <wvobject fp_name="group1367" type="group">
+         <obj_property name="label">LOADS</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_full" type="logic">
+            <obj_property name="ElementShortName">lq_full</obj_property>
+            <obj_property name="ObjectShortName">lq_full</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_empty" type="logic">
+            <obj_property name="ElementShortName">lq_empty</obj_property>
+            <obj_property name="ObjectShortName">lq_empty</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/load_queue" type="array">
+            <obj_property name="ElementShortName">load_queue[0:7]</obj_property>
+            <obj_property name="ObjectShortName">load_queue[0:7]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_enqueue" type="logic">
+            <obj_property name="ElementShortName">lq_enqueue</obj_property>
+            <obj_property name="ObjectShortName">lq_enqueue</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_dequeue" type="logic">
+            <obj_property name="ElementShortName">lq_dequeue</obj_property>
+            <obj_property name="ObjectShortName">lq_dequeue</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_dispatch" type="logic">
+            <obj_property name="ElementShortName">lq_dispatch</obj_property>
+            <obj_property name="ObjectShortName">lq_dispatch</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_dispatch_ready" type="logic">
+            <obj_property name="ElementShortName">lq_dispatch_ready</obj_property>
+            <obj_property name="ObjectShortName">lq_dispatch_ready</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_dispatch_load_index" type="array">
+            <obj_property name="ElementShortName">lq_dispatch_load_index[2:0]</obj_property>
+            <obj_property name="ObjectShortName">lq_dispatch_load_index[2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_head_counter_reg" type="array">
+            <obj_property name="ElementShortName">lq_head_counter_reg[2:0]</obj_property>
+            <obj_property name="ObjectShortName">lq_head_counter_reg[2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_head_counter_next" type="array">
+            <obj_property name="ElementShortName">lq_head_counter_next[2:0]</obj_property>
+            <obj_property name="ObjectShortName">lq_head_counter_next[2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_tail_counter_reg" type="array">
+            <obj_property name="ElementShortName">lq_tail_counter_reg[2:0]</obj_property>
+            <obj_property name="ObjectShortName">lq_tail_counter_reg[2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_tail_counter_next" type="array">
+            <obj_property name="ElementShortName">lq_tail_counter_next[2:0]</obj_property>
+            <obj_property name="ObjectShortName">lq_tail_counter_next[2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_num_elements" type="array">
+            <obj_property name="ElementShortName">lq_num_elements[3:0]</obj_property>
+            <obj_property name="ObjectShortName">lq_num_elements[3:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_tail_mispredict_recovery_memory" type="array">
+            <obj_property name="ElementShortName">lq_tail_mispredict_recovery_memory[3:0][2:0]</obj_property>
+            <obj_property name="ObjectShortName">lq_tail_mispredict_recovery_memory[3:0][2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_num_elements_mispredict_recovery_memory" type="array">
+            <obj_property name="ElementShortName">lq_num_elements_mispredict_recovery_memory[3:0][3:0]</obj_property>
+            <obj_property name="ObjectShortName">lq_num_elements_mispredict_recovery_memory[3:0][3:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/lq_curr_store_mask" type="array">
+            <obj_property name="ElementShortName">lq_curr_store_mask[7:0]</obj_property>
+            <obj_property name="ObjectShortName">lq_curr_store_mask[7:0]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="group1328" type="group">
+         <obj_property name="label">STORES</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/store_queue" type="array">
+            <obj_property name="ElementShortName">store_queue[0:7]</obj_property>
+            <obj_property name="ObjectShortName">store_queue[0:7]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_enqueue" type="logic">
+            <obj_property name="ElementShortName">sq_enqueue</obj_property>
+            <obj_property name="ObjectShortName">sq_enqueue</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_dequeue" type="logic">
+            <obj_property name="ElementShortName">sq_dequeue</obj_property>
+            <obj_property name="ObjectShortName">sq_dequeue</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_dispatch" type="logic">
+            <obj_property name="ElementShortName">sq_dispatch</obj_property>
+            <obj_property name="ObjectShortName">sq_dispatch</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_dispatch_ready" type="logic">
+            <obj_property name="ElementShortName">sq_dispatch_ready</obj_property>
+            <obj_property name="ObjectShortName">sq_dispatch_ready</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_head_counter_reg" type="array">
+            <obj_property name="ElementShortName">sq_head_counter_reg[2:0]</obj_property>
+            <obj_property name="ObjectShortName">sq_head_counter_reg[2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_head_counter_next" type="array">
+            <obj_property name="ElementShortName">sq_head_counter_next[2:0]</obj_property>
+            <obj_property name="ObjectShortName">sq_head_counter_next[2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_tail_counter_reg" type="array">
+            <obj_property name="ElementShortName">sq_tail_counter_reg[2:0]</obj_property>
+            <obj_property name="ObjectShortName">sq_tail_counter_reg[2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_tail_counter_next" type="array">
+            <obj_property name="ElementShortName">sq_tail_counter_next[2:0]</obj_property>
+            <obj_property name="ObjectShortName">sq_tail_counter_next[2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_num_elements_mispredict_recovery_memory" type="array">
+            <obj_property name="ElementShortName">sq_num_elements_mispredict_recovery_memory[3:0][3:0]</obj_property>
+            <obj_property name="ObjectShortName">sq_num_elements_mispredict_recovery_memory[3:0][3:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_tail_mispredict_recovery_memory" type="array">
+            <obj_property name="ElementShortName">sq_tail_mispredict_recovery_memory[3:0][2:0]</obj_property>
+            <obj_property name="ObjectShortName">sq_tail_mispredict_recovery_memory[3:0][2:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_num_elements" type="array">
+            <obj_property name="ElementShortName">sq_num_elements[3:0]</obj_property>
+            <obj_property name="ObjectShortName">sq_num_elements[3:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_empty" type="logic">
+            <obj_property name="ElementShortName">sq_empty</obj_property>
+            <obj_property name="ObjectShortName">sq_empty</obj_property>
+         </wvobject>
+         <wvobject fp_name="/load_store_unit_spec_tb/lsu_inst/sq_full" type="logic">
+            <obj_property name="ElementShortName">sq_full</obj_property>
+            <obj_property name="ObjectShortName">sq_full</obj_property>
+         </wvobject>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/load_store_unit_spec_tb/cdb_inst" type="array">
+      <obj_property name="ElementShortName">cdb_inst</obj_property>
+      <obj_property name="ObjectShortName">cdb_inst</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+</wave_config>

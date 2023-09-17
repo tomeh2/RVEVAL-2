@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="cache_bus_controller_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="cache_bus_controller_tb" />
+            <top_module name="glbl" />
+            <top_module name="pkg_cpu" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="6.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="922.001 ns"></ZoomEndTime>
+      <Cursor1Time time="121.500 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="369"></NameColumnWidth>
+      <ValueColumnWidth column_width="58"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="55" />
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/bus_addr_write" type="array">
+      <obj_property name="ElementShortName">bus_addr_write[31:0]</obj_property>
+      <obj_property name="ObjectShortName">bus_addr_write[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/bus_data_write" type="array">
+      <obj_property name="ElementShortName">bus_data_write[31:0]</obj_property>
+      <obj_property name="ObjectShortName">bus_data_write[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/bus_addr_read" type="array">
+      <obj_property name="ElementShortName">bus_addr_read[31:0]</obj_property>
+      <obj_property name="ObjectShortName">bus_addr_read[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/bus_data_read" type="array">
+      <obj_property name="ElementShortName">bus_data_read[31:0]</obj_property>
+      <obj_property name="ObjectShortName">bus_data_read[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/bus_stbw" type="array">
+      <obj_property name="ElementShortName">bus_stbw[3:0]</obj_property>
+      <obj_property name="ObjectShortName">bus_stbw[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/bus_ackw" type="logic">
+      <obj_property name="ElementShortName">bus_ackw</obj_property>
+      <obj_property name="ObjectShortName">bus_ackw</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/bus_stbr" type="logic">
+      <obj_property name="ElementShortName">bus_stbr</obj_property>
+      <obj_property name="ObjectShortName">bus_stbr</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/bus_ackr" type="logic">
+      <obj_property name="ElementShortName">bus_ackr</obj_property>
+      <obj_property name="ObjectShortName">bus_ackr</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/fetch_address" type="array">
+      <obj_property name="ElementShortName">fetch_address[31:0]</obj_property>
+      <obj_property name="ObjectShortName">fetch_address[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/fetch_cacheable" type="logic">
+      <obj_property name="ElementShortName">fetch_cacheable</obj_property>
+      <obj_property name="ObjectShortName">fetch_cacheable</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/fetch_size" type="array">
+      <obj_property name="ElementShortName">fetch_size[1:0]</obj_property>
+      <obj_property name="ObjectShortName">fetch_size[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/fetch_en" type="logic">
+      <obj_property name="ElementShortName">fetch_en</obj_property>
+      <obj_property name="ObjectShortName">fetch_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/fetched_cacheline_data" type="array">
+      <obj_property name="ElementShortName">fetched_cacheline_data[127:0]</obj_property>
+      <obj_property name="ObjectShortName">fetched_cacheline_data[127:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/fetched_cacheline_address" type="array">
+      <obj_property name="ElementShortName">fetched_cacheline_address[31:0]</obj_property>
+      <obj_property name="ObjectShortName">fetched_cacheline_address[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/fetched_cacheline_valid" type="logic">
+      <obj_property name="ElementShortName">fetched_cacheline_valid</obj_property>
+      <obj_property name="ObjectShortName">fetched_cacheline_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/writeback_address" type="array">
+      <obj_property name="ElementShortName">writeback_address[31:0]</obj_property>
+      <obj_property name="ObjectShortName">writeback_address[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/writeback_size" type="array">
+      <obj_property name="ElementShortName">writeback_size[1:0]</obj_property>
+      <obj_property name="ObjectShortName">writeback_size[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/writeback_cacheable" type="logic">
+      <obj_property name="ElementShortName">writeback_cacheable</obj_property>
+      <obj_property name="ObjectShortName">writeback_cacheable</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/writeback_en" type="logic">
+      <obj_property name="ElementShortName">writeback_en</obj_property>
+      <obj_property name="ObjectShortName">writeback_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo_head" type="array">
+      <obj_property name="ElementShortName">read_fifo_head[1:0]</obj_property>
+      <obj_property name="ObjectShortName">read_fifo_head[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo_head_next" type="array">
+      <obj_property name="ElementShortName">read_fifo_head_next[1:0]</obj_property>
+      <obj_property name="ObjectShortName">read_fifo_head_next[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo_tail" type="array">
+      <obj_property name="ElementShortName">read_fifo_tail[1:0]</obj_property>
+      <obj_property name="ObjectShortName">read_fifo_tail[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo_tail_next" type="array">
+      <obj_property name="ElementShortName">read_fifo_tail_next[1:0]</obj_property>
+      <obj_property name="ObjectShortName">read_fifo_tail_next[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo_num_elements" type="array">
+      <obj_property name="ElementShortName">read_fifo_num_elements[2:0]</obj_property>
+      <obj_property name="ObjectShortName">read_fifo_num_elements[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo_full" type="logic">
+      <obj_property name="ElementShortName">read_fifo_full</obj_property>
+      <obj_property name="ObjectShortName">read_fifo_full</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo_empty" type="logic">
+      <obj_property name="ElementShortName">read_fifo_empty</obj_property>
+      <obj_property name="ObjectShortName">read_fifo_empty</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo_enqueue" type="logic">
+      <obj_property name="ElementShortName">read_fifo_enqueue</obj_property>
+      <obj_property name="ObjectShortName">read_fifo_enqueue</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo_dequeue" type="logic">
+      <obj_property name="ElementShortName">read_fifo_dequeue</obj_property>
+      <obj_property name="ObjectShortName">read_fifo_dequeue</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fifo" type="array">
+      <obj_property name="ElementShortName">read_fifo[0:3]</obj_property>
+      <obj_property name="ObjectShortName">read_fifo[0:3]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/fetch_cycle_start" type="logic">
+      <obj_property name="ElementShortName">fetch_cycle_start</obj_property>
+      <obj_property name="ObjectShortName">fetch_cycle_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_state" type="other">
+      <obj_property name="ElementShortName">read_state</obj_property>
+      <obj_property name="ObjectShortName">read_state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_state_next" type="other">
+      <obj_property name="ElementShortName">read_state_next</obj_property>
+      <obj_property name="ObjectShortName">read_state_next</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fetch_addr_reg" type="array">
+      <obj_property name="ElementShortName">read_fetch_addr_reg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">read_fetch_addr_reg[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fetch_data_reg" type="array">
+      <obj_property name="ElementShortName">read_fetch_data_reg[127:0]</obj_property>
+      <obj_property name="ObjectShortName">read_fetch_data_reg[127:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fetch_size_reg" type="array">
+      <obj_property name="ElementShortName">read_fetch_size_reg[1:0]</obj_property>
+      <obj_property name="ObjectShortName">read_fetch_size_reg[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_fetched_words_counter" type="array">
+      <obj_property name="ElementShortName">read_fetched_words_counter[2:0]</obj_property>
+      <obj_property name="ObjectShortName">read_fetched_words_counter[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/read_words_to_fetch" type="array">
+      <obj_property name="ElementShortName">read_words_to_fetch[2:0]</obj_property>
+      <obj_property name="ObjectShortName">read_words_to_fetch[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo_head" type="array">
+      <obj_property name="ElementShortName">write_fifo_head[1:0]</obj_property>
+      <obj_property name="ObjectShortName">write_fifo_head[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo_head_next" type="array">
+      <obj_property name="ElementShortName">write_fifo_head_next[1:0]</obj_property>
+      <obj_property name="ObjectShortName">write_fifo_head_next[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo_tail" type="array">
+      <obj_property name="ElementShortName">write_fifo_tail[1:0]</obj_property>
+      <obj_property name="ObjectShortName">write_fifo_tail[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo_tail_next" type="array">
+      <obj_property name="ElementShortName">write_fifo_tail_next[1:0]</obj_property>
+      <obj_property name="ObjectShortName">write_fifo_tail_next[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo_num_elements" type="array">
+      <obj_property name="ElementShortName">write_fifo_num_elements[2:0]</obj_property>
+      <obj_property name="ObjectShortName">write_fifo_num_elements[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo_full" type="logic">
+      <obj_property name="ElementShortName">write_fifo_full</obj_property>
+      <obj_property name="ObjectShortName">write_fifo_full</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo_empty" type="logic">
+      <obj_property name="ElementShortName">write_fifo_empty</obj_property>
+      <obj_property name="ObjectShortName">write_fifo_empty</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo_enqueue" type="logic">
+      <obj_property name="ElementShortName">write_fifo_enqueue</obj_property>
+      <obj_property name="ObjectShortName">write_fifo_enqueue</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo_dequeue" type="logic">
+      <obj_property name="ElementShortName">write_fifo_dequeue</obj_property>
+      <obj_property name="ObjectShortName">write_fifo_dequeue</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/write_fifo" type="array">
+      <obj_property name="ElementShortName">write_fifo[0:3]</obj_property>
+      <obj_property name="ObjectShortName">write_fifo[0:3]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/ADDRESS_WIDTH" type="other">
+      <obj_property name="ElementShortName">ADDRESS_WIDTH</obj_property>
+      <obj_property name="ObjectShortName">ADDRESS_WIDTH</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/DATA_WIDTH" type="other">
+      <obj_property name="ElementShortName">DATA_WIDTH</obj_property>
+      <obj_property name="ObjectShortName">DATA_WIDTH</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/ENTRY_SIZE_BYTES" type="other">
+      <obj_property name="ElementShortName">ENTRY_SIZE_BYTES</obj_property>
+      <obj_property name="ObjectShortName">ENTRY_SIZE_BYTES</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/ENTRIES_PER_CACHELINE" type="other">
+      <obj_property name="ElementShortName">ENTRIES_PER_CACHELINE</obj_property>
+      <obj_property name="ObjectShortName">ENTRIES_PER_CACHELINE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/READ_FIFO_DEPTH" type="other">
+      <obj_property name="ElementShortName">READ_FIFO_DEPTH</obj_property>
+      <obj_property name="ObjectShortName">READ_FIFO_DEPTH</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_bus_controller_tb/cbc_inst/WRITE_FIFO_DEPTH" type="other">
+      <obj_property name="ElementShortName">WRITE_FIFO_DEPTH</obj_property>
+      <obj_property name="ObjectShortName">WRITE_FIFO_DEPTH</obj_property>
+   </wvobject>
+</wave_config>

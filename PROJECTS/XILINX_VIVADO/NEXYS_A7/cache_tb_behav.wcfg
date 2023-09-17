@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="cache_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="cache_tb" />
+            <top_module name="glbl" />
+            <top_module name="pkg_cpu" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="618.001 ns"></ZoomEndTime>
+      <Cursor1Time time="152.500 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="375"></NameColumnWidth>
+      <ValueColumnWidth column_width="60"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="40" />
+   <wvobject fp_name="/cache_tb/cache_inst/read_input_port" type="array">
+      <obj_property name="ElementShortName">read_input_port</obj_property>
+      <obj_property name="ObjectShortName">read_input_port</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/write_input_port" type="array">
+      <obj_property name="ElementShortName">write_input_port</obj_property>
+      <obj_property name="ObjectShortName">write_input_port</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/cache_valid_bits" type="array">
+      <obj_property name="ElementShortName">cache_valid_bits[0:7][1:0]</obj_property>
+      <obj_property name="ObjectShortName">cache_valid_bits[0:7][1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/bram_read_cache_block" type="array">
+      <obj_property name="ElementShortName">bram_read_cache_block[1:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_read_cache_block[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/bram_read_cache_block_valid_bits" type="array">
+      <obj_property name="ElementShortName">bram_read_cache_block_valid_bits[1:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_read_cache_block_valid_bits[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/bram_write_cache_block" type="array">
+      <obj_property name="ElementShortName">bram_write_cache_block[1:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_write_cache_block[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/bram_write_cache_block_valid_bits" type="array">
+      <obj_property name="ElementShortName">bram_write_cache_block_valid_bits[1:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_write_cache_block_valid_bits[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/hit_mask_read" type="array">
+      <obj_property name="ElementShortName">hit_mask_read[1:0]</obj_property>
+      <obj_property name="ObjectShortName">hit_mask_read[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/hit_mask_write" type="array">
+      <obj_property name="ElementShortName">hit_mask_write[1:0]</obj_property>
+      <obj_property name="ObjectShortName">hit_mask_write[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/cacheline_read_with_hit" type="array">
+      <obj_property name="ElementShortName">cacheline_read_with_hit</obj_property>
+      <obj_property name="ObjectShortName">cacheline_read_with_hit</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/cacheline_write_with_hit" type="array">
+      <obj_property name="ElementShortName">cacheline_write_with_hit</obj_property>
+      <obj_property name="ObjectShortName">cacheline_write_with_hit</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/cacheline_write" type="array">
+      <obj_property name="ElementShortName">cacheline_write</obj_property>
+      <obj_property name="ObjectShortName">cacheline_write</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/pipeline_reg_0" type="array">
+      <obj_property name="ElementShortName">pipeline_reg_0</obj_property>
+      <obj_property name="ObjectShortName">pipeline_reg_0</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/pipeline_reg_0_en" type="logic">
+      <obj_property name="ElementShortName">pipeline_reg_0_en</obj_property>
+      <obj_property name="ObjectShortName">pipeline_reg_0_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/pipeline_reg_1" type="array">
+      <obj_property name="ElementShortName">pipeline_reg_1</obj_property>
+      <obj_property name="ObjectShortName">pipeline_reg_1</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/pipeline_reg_1_en" type="logic">
+      <obj_property name="ElementShortName">pipeline_reg_1_en</obj_property>
+      <obj_property name="ObjectShortName">pipeline_reg_1_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/pipeline_reg_2" type="array">
+      <obj_property name="ElementShortName">pipeline_reg_2</obj_property>
+      <obj_property name="ObjectShortName">pipeline_reg_2</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/pipeline_reg_2_en" type="logic">
+      <obj_property name="ElementShortName">pipeline_reg_2_en</obj_property>
+      <obj_property name="ObjectShortName">pipeline_reg_2_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/DATA_WIDTH" type="other">
+      <obj_property name="ElementShortName">DATA_WIDTH</obj_property>
+      <obj_property name="ObjectShortName">DATA_WIDTH</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/ADDRESS_WIDTH" type="other">
+      <obj_property name="ElementShortName">ADDRESS_WIDTH</obj_property>
+      <obj_property name="ObjectShortName">ADDRESS_WIDTH</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/ENTRY_SIZE_BYTES" type="other">
+      <obj_property name="ElementShortName">ENTRY_SIZE_BYTES</obj_property>
+      <obj_property name="ObjectShortName">ENTRY_SIZE_BYTES</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/ENTRIES_PER_CACHELINE" type="other">
+      <obj_property name="ElementShortName">ENTRIES_PER_CACHELINE</obj_property>
+      <obj_property name="ObjectShortName">ENTRIES_PER_CACHELINE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/NUM_SETS" type="other">
+      <obj_property name="ElementShortName">NUM_SETS</obj_property>
+      <obj_property name="ObjectShortName">NUM_SETS</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/ASSOCIATIVITY" type="other">
+      <obj_property name="ElementShortName">ASSOCIATIVITY</obj_property>
+      <obj_property name="ObjectShortName">ASSOCIATIVITY</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/IS_BLOCKING" type="other">
+      <obj_property name="ElementShortName">IS_BLOCKING</obj_property>
+      <obj_property name="ObjectShortName">IS_BLOCKING</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/TAG_SIZE" type="other">
+      <obj_property name="ElementShortName">TAG_SIZE</obj_property>
+      <obj_property name="ObjectShortName">TAG_SIZE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/INDEX_SIZE" type="other">
+      <obj_property name="ElementShortName">INDEX_SIZE</obj_property>
+      <obj_property name="ObjectShortName">INDEX_SIZE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/CACHELINE_SIZE" type="other">
+      <obj_property name="ElementShortName">CACHELINE_SIZE</obj_property>
+      <obj_property name="ObjectShortName">CACHELINE_SIZE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/CACHELINE_ALIGNMENT" type="other">
+      <obj_property name="ElementShortName">CACHELINE_ALIGNMENT</obj_property>
+      <obj_property name="ObjectShortName">CACHELINE_ALIGNMENT</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/CACHELINE_TAG_START" type="other">
+      <obj_property name="ElementShortName">CACHELINE_TAG_START</obj_property>
+      <obj_property name="ObjectShortName">CACHELINE_TAG_START</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/CACHELINE_TAG_END" type="other">
+      <obj_property name="ElementShortName">CACHELINE_TAG_END</obj_property>
+      <obj_property name="ObjectShortName">CACHELINE_TAG_END</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/CACHELINE_DATA_START" type="other">
+      <obj_property name="ElementShortName">CACHELINE_DATA_START</obj_property>
+      <obj_property name="ObjectShortName">CACHELINE_DATA_START</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/CACHELINE_DATA_END" type="other">
+      <obj_property name="ElementShortName">CACHELINE_DATA_END</obj_property>
+      <obj_property name="ObjectShortName">CACHELINE_DATA_END</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/CACHELINE_DIRTY_BIT" type="other">
+      <obj_property name="ElementShortName">CACHELINE_DIRTY_BIT</obj_property>
+      <obj_property name="ObjectShortName">CACHELINE_DIRTY_BIT</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/ADDR_INDEX_START" type="other">
+      <obj_property name="ElementShortName">ADDR_INDEX_START</obj_property>
+      <obj_property name="ObjectShortName">ADDR_INDEX_START</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/ADDR_INDEX_END" type="other">
+      <obj_property name="ElementShortName">ADDR_INDEX_END</obj_property>
+      <obj_property name="ObjectShortName">ADDR_INDEX_END</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/\bram_gen(0)\/bram_inst/bram" type="array">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">bram[7:0][153:0]</obj_property>
+      <obj_property name="ObjectShortName">bram[7:0][153:0]</obj_property>
+      <obj_property name="label">bram0[7:0][153:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cache_tb/cache_inst/\bram_gen(1)\/bram_inst/bram" type="array">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">bram[7:0][153:0]</obj_property>
+      <obj_property name="ObjectShortName">bram[7:0][153:0]</obj_property>
+      <obj_property name="label">bram1[7:0][153:0]</obj_property>
+   </wvobject>
+</wave_config>

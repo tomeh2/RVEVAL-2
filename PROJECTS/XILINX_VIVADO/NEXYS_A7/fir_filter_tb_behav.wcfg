@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="fir_filter_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="fir_filter_tb" />
+            <top_module name="glbl" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,453.845 ns"></ZoomEndTime>
+      <Cursor1Time time="4.605 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="375"></NameColumnWidth>
+      <ValueColumnWidth column_width="148"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="14" />
+   <wvobject fp_name="/fir_filter_tb/in" type="array">
+      <obj_property name="ElementShortName">in[15:0]</obj_property>
+      <obj_property name="ObjectShortName">in[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/out" type="array">
+      <obj_property name="ElementShortName">out[15:0]</obj_property>
+      <obj_property name="ObjectShortName">out[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/input_signal" type="array">
+      <obj_property name="ElementShortName">input_signal[15:0]</obj_property>
+      <obj_property name="ObjectShortName">input_signal[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/output_signal" type="array">
+      <obj_property name="ElementShortName">output_signal[15:0]</obj_property>
+      <obj_property name="ObjectShortName">output_signal[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/delay_regs" type="array">
+      <obj_property name="ElementShortName">delay_regs[8:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">delay_regs[8:0][15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/coeff_regs" type="array">
+      <obj_property name="ElementShortName">coeff_regs[8:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">coeff_regs[8:0][15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/intermediate_results" type="array">
+      <obj_property name="ElementShortName">intermediate_results[8:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">intermediate_results[8:0][15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/after_mult_temp" type="array">
+      <obj_property name="ElementShortName">after_mult_temp[8:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">after_mult_temp[8:0][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/after_shift_temp" type="array">
+      <obj_property name="ElementShortName">after_shift_temp[8:0][15:0]</obj_property>
+      <obj_property name="ObjectShortName">after_shift_temp[8:0][15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/BITS_PER_SAMPLE" type="other">
+      <obj_property name="ElementShortName">BITS_PER_SAMPLE</obj_property>
+      <obj_property name="ObjectShortName">BITS_PER_SAMPLE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/BITS_FRACTION" type="other">
+      <obj_property name="ElementShortName">BITS_FRACTION</obj_property>
+      <obj_property name="ObjectShortName">BITS_FRACTION</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fir_filter_tb/uut/ORDER" type="other">
+      <obj_property name="ElementShortName">ORDER</obj_property>
+      <obj_property name="ObjectShortName">ORDER</obj_property>
+   </wvobject>
+</wave_config>
